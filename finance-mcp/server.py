@@ -18,6 +18,10 @@ Decision de arquitectura: la consolidacion multi-moneda usa la tasa de
 CIERRE de cada periodo (tabla fija fx_rates.csv), no una tasa en vivo.
 Asi el P&L de un periodo cerrado no cambia con el tiempo, que es como se
 consolida en contabilidad real.
+
+Superficie deliberadamente READ-ONLY: el server solo lee y reporta. No
+expone ninguna herramienta que escriba, borre o mueva dinero. Esa es una
+decision de seguridad, no una limitacion.
 """
 
 import csv
@@ -50,6 +54,7 @@ BS = _load("balance_sheet.csv")
 INVOICES = _load("ar_invoices.csv")
 
 ENTITY_CCY = {r["entity_id"]: r["currency"] for r in ENTITIES}
+ENTITY_IDS = [r["entity_id"] for r in ENTITIES]
 PERIODS = sorted({r["period"] for r in PNL})
 CURRENCIES = sorted({r["currency"] for r in ENTITIES})
 
@@ -90,6 +95,15 @@ def _validate_period(period):
         )
 
 
+def _validate_entity(entity_id):
+    """Acepta vacio (=consolidado) o un entity_id valido. Falla claro si no."""
+    if entity_id and entity_id not in ENTITY_IDS:
+        raise ValueError(
+            f"Entidad '{entity_id}' no existe. Opciones: {', '.join(ENTITY_IDS)} "
+            f"(o vacio para consolidado)."
+        )
+
+
 def _money(x, currency):
     return f"{currency} {x:,.0f}"
 
@@ -118,6 +132,7 @@ def get_pnl(period: str, report_currency: str = "USD", entity_id: str = "") -> s
     """
     _validate_period(period)
     _validate_currency(report_currency)
+    _validate_entity(entity_id)
 
     agg = defaultdict(float)
     for r in PNL:
@@ -160,6 +175,7 @@ def get_balance_sheet(report_currency: str = "USD", entity_id: str = "") -> str:
         entity_id: si se indica, reporta solo esa entidad; si no, consolida.
     """
     _validate_currency(report_currency)
+    _validate_entity(entity_id)
     agg = defaultdict(float)
     for r in BS:
         if entity_id and r["entity_id"] != entity_id:
@@ -202,6 +218,7 @@ def get_ar_aging(report_currency: str = "USD", as_of_date: str = "2026-05-31", e
         entity_id: si se indica, solo esa entidad; si no, consolida.
     """
     _validate_currency(report_currency)
+    _validate_entity(entity_id)
     asof = datetime.date.fromisoformat(as_of_date)
     buckets = {"Corriente": 0.0, "1-30": 0.0, "31-60": 0.0, "61-90": 0.0, "90+": 0.0}
     for r in INVOICES:

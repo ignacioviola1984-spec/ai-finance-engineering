@@ -35,11 +35,18 @@ Bitacora de avance, fase por fase.
 - Datos sinteticos reproducibles (generate_data.py).
 - Conceptos: FastMCP, definir tools, capa de datos, validaciones.
 
+### Fase 2.3 — Conectar el server a un cliente y endurecerlo  [OK]
+- test_client.py: cliente MCP por stdio (initialize, list_tools, call_tool).
+- Validacion de entity_id; errores claros propagados por el protocolo.
+- Superficie read-only deliberada (sin tools de escritura).
+- Pendiente opcional: conectar a Claude Desktop via config.
+
 ## Siguiente
 
-### Fase 2.3 — Conectar el server a Claude y endurecerlo
-- Conectar finance-mcp a un cliente (MCP Inspector / Claude Desktop).
-- Mas manejo de errores y validaciones, decidir que exponer y que no.
+### Fase 3 — Orquestacion multi-agente + sub-agents
+- Patrones (prompt chaining, routing) sobre tarea financiera.
+- Orquestador + sub-agent por etapa con el Claude Agent SDK.
+- Checks entre etapas, audit trail, escalamiento (human-in-the-loop).
 
 ## Notas
 - Background: 17 anios en finanzas senior. Plan Max 5x.
