@@ -40,6 +40,13 @@ table, converts amounts, and handles failures instead of crashing. No API key.
 
 **Concepts:** REST API calls, JSON parsing, functions, error handling.
 
+### `api_fx.py` — First API call
+The starting point for working with APIs: hits a public FX endpoint, reads
+the JSON response, and prints the rates. The minimal version that `fx_rates.py`
+builds on.
+
+**Concepts:** what a REST API is, GET requests, reading JSON, status codes.
+
 ### `hello_finance.py` — First script
 A minimal margin calculation. The starting point.
 
