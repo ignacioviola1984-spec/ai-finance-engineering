@@ -28,6 +28,17 @@ before any figure reaches the board. Details:
 **Stack:** Python, Anthropic API, agent patterns (chaining, routing,
 sub-agents), audit trail, human-in-the-loop controls.
 
+### Finance Document Intelligence / RAG (`document-intelligence/`)
+Semantic search, retrieval-augmented generation, and structured extraction
+over finance documents (vendor contracts, expense policy): embeds and
+chunks the documents, answers questions with source citations, and extracts
+key contract terms into a table. Includes the judgment of when RAG helps and
+when full context is better. Details:
+[`document-intelligence/README.md`](document-intelligence/README.md).
+
+**Stack:** Python, sentence-transformers / PyTorch, embeddings & cosine
+similarity, RAG, structured extraction, Anthropic API.
+
 ### API Integration (`api-integration/`)
 Connecting finance workflows to live external data: a direct FX API client,
 a multi-currency rates and conversion tool against official ECB data, and a

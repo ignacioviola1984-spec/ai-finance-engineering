@@ -60,11 +60,28 @@ Bitacora de avance, fase por fase.
   reglas de escalamiento por severidad, gate human-in-the-loop.
 - Corrida real: 2 escalamientos ALTA -> freno -> aprobacion humana -> board.
 
+### Fase 4 — RAG + embeddings para finanzas document-heavy  [OK]
+- document-intelligence/: busqueda semantica, RAG con citas, extraccion
+  estructurada de terminos de contratos a tabla.
+- Embeddings: sentence-transformers (PyTorch) con fallback model2vec.
+  Backend intercambiable (no toca la busqueda).
+- Criterio: RAG para pregunta puntual sobre corpus grande; full-context
+  para extraer campos de un doc chico.
+- Debugging real (documentado en el README del proyecto): con embeddings
+  solo-ingles, preguntas en espanol sobre docs en ingles no recuperaban el
+  fragmento correcto. El modelo NO alucino, se nego a responder. Diagnostico:
+  falla de retrieval cross-lingual, no de generacion. Fix: modelo de
+  embeddings multilingue. Leccion -> solo un eval set detecta esto sistematico.
+
 ## Siguiente
 
-### Fase 4 — RAG + embeddings para finanzas document-heavy
-- Busqueda semantica sobre documentos; extraccion estructurada.
-- Criterio: cuando RAG vs todo en contexto.
+### Fase 5 — Evals, guardrails y confiabilidad  (LA CORONA)
+- Eval set con respuestas correctas conocidas para un agente.
+- Guardrails, medicion de accuracy, regression testing de prompts.
+- Writeup: como hago confiable un agente financiero.
+
+### Fase 6 — Shippear y deployar
+- Hostear un proyecto, scheduler, demo.
 
 ## Notas
 - Background: 17 anios en finanzas senior. Plan Max 5x.
@@ -72,3 +89,5 @@ Bitacora de avance, fase por fase.
   de entregar, nada inflado.
 - Regla: sin repo, no aprendiste. Pedir el "por que" de cada decision.
 - Human-in-the-loop: validar entre etapas como control de calidad.
+- Ritmo: NO decir "cerramos por hoy" ni sugerir cortar. Se sigue hasta
+  que Nacho lo indique. El decide cuando parar.

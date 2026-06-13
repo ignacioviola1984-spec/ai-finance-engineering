@@ -1,0 +1,6 @@
+sentence-transformers
+anthropic
+python-dotenv
+numpy
+# Fallback opcional sin PyTorch:
+model2vec
