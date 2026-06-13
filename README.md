@@ -39,6 +39,16 @@ when full context is better. Details:
 **Stack:** Python, sentence-transformers / PyTorch, embeddings & cosine
 similarity, RAG, structured extraction, Anthropic API.
 
+### Evals, Guardrails & Reliability (`evals/`)
+An evaluation harness that measures whether the agents are trustworthy:
+regression on consolidated numbers, accuracy of contract extraction against a
+known ground truth, and a grounding guardrail that checks the RAG refuses
+out-of-scope questions instead of inventing. Exits non-zero on failure, so it
+works as a regression test. Details: [`evals/README.md`](evals/README.md).
+
+**Stack:** Python, evaluation harness, regression testing, grounding
+guardrails. This is the reliability layer over the other projects.
+
 ### API Integration (`api-integration/`)
 Connecting finance workflows to live external data: a direct FX API client,
 a multi-currency rates and conversion tool against official ECB data, and a

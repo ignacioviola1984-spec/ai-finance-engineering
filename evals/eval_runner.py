@@ -1,0 +1,125 @@
+"""
+eval_runner.py - Eval harness y medicion (Fase 5.2).
+
+Corre tres suites contra los agentes del repo y devuelve un scorecard con
+accuracy. Sale con codigo distinto de cero si algo no pasa, asi sirve como
+test de regresion (lo podes correr antes de cada cambio para saber si
+rompiste algo).
+
+  1) Numbers     - regresion sobre numeros consolidados (deterministicos).
+  2) Extraction  - accuracy de la extraccion de terminos de contratos.
+  3) Grounding   - guardrail: el RAG debe negarse ante preguntas sin
+                   respuesta en los documentos, no inventar.
+
+Requisitos: ANTHROPIC_API_KEY en el .env de la raiz (para extraction y
+grounding). La suite de numbers no usa el modelo.
+
+Correr:  python eval_runner.py
+"""
+
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.join(HERE, "..")
+sys.path.insert(0, os.path.join(ROOT, "orchestration"))
+sys.path.insert(0, os.path.join(ROOT, "document-intelligence"))
+
+import finance_core as fc
+from eval_set import (
+    EXTRACTION_TRUTH, NUMERIC_TRUTH, NUMERIC_TOLERANCE, AR_OVERDUE_PCT_MIN,
+    GROUNDING_CASES, REFUSAL_SIGNALS,
+)
+
+
+def _check(label, ok, detail=""):
+    mark = "PASS" if ok else "FALLA"
+    print(f"  [{mark}] {label}{(' - ' + detail) if detail else ''}")
+    return 1 if ok else 0
+
+
+def suite_numbers():
+    print("\nSuite 1 - Numbers (regresion, sin modelo)")
+    passed = total = 0
+    pnl = fc.pnl_usd("2026-05")
+    cash = fc.cash_total_usd()
+    ar = fc.ar_overdue_usd()
+
+    checks = [
+        ("operating income 2026-05", pnl["operating_income"], NUMERIC_TRUTH["operating_income_2026_05_usd"]),
+        ("cash consolidado", cash, NUMERIC_TRUTH["cash_usd"]),
+    ]
+    for label, got, expected in checks:
+        ok = abs(got - expected) <= abs(expected) * NUMERIC_TOLERANCE
+        total += 1
+        passed += _check(label, ok, f"esperado ~{expected:,.0f}, obtenido {got:,.0f}")
+
+    ok = ar["overdue_pct"] >= AR_OVERDUE_PCT_MIN
+    total += 1
+    passed += _check("AR vencida > 90%", ok, f"obtenido {ar['overdue_pct']:.0f}%")
+    return passed, total
+
+
+def suite_extraction():
+    print("\nSuite 2 - Extraction (accuracy de extraccion de contratos)")
+    from rag import extract_terms
+    rows = {r["_file"]: r for r in extract_terms()}
+    passed = total = 0
+    for fname, expected in EXTRACTION_TRUTH.items():
+        row = rows.get(fname, {})
+        for field, must_contain in expected.items():
+            got = str(row.get(field, "")).lower()
+            ok = must_contain.lower() in got
+            total += 1
+            passed += _check(f"{fname} :: {field}", ok, f"esperaba '{must_contain}'")
+    return passed, total
+
+
+def suite_grounding():
+    print("\nSuite 3 - Grounding guardrail (debe negarse, no inventar)")
+    from rag import answer
+    passed = total = 0
+    for q in GROUNDING_CASES:
+        _, txt = answer(q)
+        low = txt.lower()
+        refused = any(sig in low for sig in REFUSAL_SIGNALS)
+        total += 1
+        passed += _check(f"se niega a: {q}", refused)
+    return passed, total
+
+
+def main():
+    print("=" * 60)
+    print("EVAL HARNESS - confiabilidad de los agentes")
+    print("=" * 60)
+
+    results = []
+    results.append(("Numbers", suite_numbers()))
+    results.append(("Extraction", suite_extraction()))
+    results.append(("Grounding", suite_grounding()))
+
+    print("\n" + "=" * 60)
+    print("SCORECARD")
+    print("=" * 60)
+    all_ok = True
+    tot_p = tot_t = 0
+    for name, (p, t) in results:
+        tot_p += p
+        tot_t += t
+        pct = (p / t * 100) if t else 0
+        status = "OK" if p == t else "REVISAR"
+        if p != t:
+            all_ok = False
+        print(f"  {name:12} {p}/{t}  ({pct:.0f}%)  {status}")
+    overall = (tot_p / tot_t * 100) if tot_t else 0
+    print("-" * 60)
+    print(f"  {'TOTAL':12} {tot_p}/{tot_t}  ({overall:.0f}%)")
+
+    if not all_ok:
+        print("\nHay checks que no pasaron. Salida con codigo 1 (regresion).")
+        sys.exit(1)
+    print("\nTodos los checks pasaron.")
+
+
+if __name__ == "__main__":
+    main()

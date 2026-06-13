@@ -76,15 +76,17 @@ Bitacora de avance, fase por fase.
   (sin torch) o embedder hosteado. Leccion -> solo un eval set lo detecta
   sistematico. Entorno: Python 3.14 es bleeding-edge, algunos modelos rompen.
 
+### Fase 5 — Evals, guardrails y confiabilidad  [OK]  (LA CORONA)
+- evals/: eval_set.py (ground truth) + eval_runner.py (3 suites: numbers,
+  extraction, grounding) con scorecard y exit code (regresion).
+- Guardrail de grounding: el RAG debe negarse ante preguntas sin respuesta.
+- Writeup "how I make a finance agent reliable" en evals/README.md.
+- Suite numbers verificada (op income -756.823, cash 7.092.891).
+
 ## Siguiente
 
-### Fase 5 — Evals, guardrails y confiabilidad  (LA CORONA)
-- Eval set con respuestas correctas conocidas para un agente.
-- Guardrails, medicion de accuracy, regression testing de prompts.
-- Writeup: como hago confiable un agente financiero.
-
 ### Fase 6 — Shippear y deployar
-- Hostear un proyecto, scheduler, demo.
+- Hostear un proyecto, scheduler, demo de 3 min.
 
 ## Notas
 - Background: 17 anios en finanzas senior. Plan Max 5x.
