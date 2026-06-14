@@ -410,16 +410,23 @@ def cash_forecast_13w(start="2026-06-01"):
 _BS_TYPE = {"1000": "A", "1100": "A", "1500": "A",
             "2000": "L", "2500": "L", "3000": "E", "3900": "E"}
 
-APPROVAL_THRESHOLD_USD = 25000.0   # tope de pago unico que exige autorizacion documentada
+# Umbral de revision de autorizacion para pagos a PROVEEDORES (AP). Es un screen
+# POR MONTO, no una prueba de que falte la firma: el registro de AP no tiene campo
+# de aprobador, asi que C5 marca los pagos grandes PARA revision de autorizacion
+# (segregacion de funciones), no afirma que esten sin autorizar. Se calibra por
+# encima del limite de gasto operativo documentado (politica T&E: >USD 5k aprueba
+# VP Finanzas) como umbral de autorizacion senior para desembolsos a proveedores.
+APPROVAL_THRESHOLD_USD = 25000.0
 
 
 def _trial_balance_imbalance(period=LATEST):
     """Maximo |Activo - (Pasivo + Patrimonio)| por entidad, en USD.
 
-    Es el control contable basico: el balance de comprobacion debe cuadrar.
-    Como los CSV guardan montos redondeados a 2 decimales en moneda local y
-    aca se reconvierten a USD, queda un residuo de redondeo de centavos; por
-    eso el chequeo usa una tolerancia, no igualdad exacta.
+    Valida la IDENTIDAD del balance de comprobacion (debe cuadrar). En libros
+    bien formados pasa por construccion; un asiento mal cargado o un balance
+    editado a mano lo hacen FALLAR (probado con tamper test). Como los CSV
+    guardan montos redondeados a 2 decimales en moneda local y aca se
+    reconvierten a USD, queda un residuo de centavos; por eso usa tolerancia.
     """
     max_imb = 0.0
     for e in _ENT:
@@ -428,8 +435,8 @@ def _trial_balance_imbalance(period=LATEST):
             continue   # sin tasa no se puede traducir: lo reporta el control C2
         a = l = q = 0.0
         for r in _BS:
-            if r["entity_id"] != eid:
-                continue
+            if r["entity_id"] != eid or r.get("period") != period:
+                continue   # filtra por entidad Y periodo (consistente con el resto del modulo)
             t = _BS_TYPE.get(r["account_code"])
             if t is None:
                 continue
@@ -495,11 +502,14 @@ def control_checks(period=LATEST, as_of="2026-05-31",
     })
 
     # C4 - Desembolsos duplicados: AP abierta con misma entidad+proveedor+monto.
+    # La clave normaliza el monto a float (round 2): asi el control no se escapa
+    # por diferencias de formato del origen ('100.0' vs '100.00'), consistente
+    # con como el resto del modulo trata amount_local.
     groups = {}
     for r in _AP:
         if r["status"] != "open":
             continue
-        k = (r["entity_id"], r["vendor"], r["amount_local"])
+        k = (r["entity_id"], r["vendor"], round(float(r["amount_local"]), 2))
         groups.setdefault(k, []).append(r["bill_id"])
     dups = {k: v for k, v in groups.items() if len(v) > 1}
     checks.append({
@@ -512,22 +522,27 @@ def control_checks(period=LATEST, as_of="2026-05-31",
                    f"{[v for v in dups.values()][:3]}"),
     })
 
-    # C5 - Autorizacion de desembolsos: pagos sobre el tope unico requieren firma.
-    # Se saltean los que no se pueden traducir (FX faltante): los reporta C2.
+    # C5 - Desembolsos grandes para revision de autorizacion (segregacion de
+    # funciones). Es un screen POR MONTO: el registro de AP no tiene campo de
+    # aprobador, asi que esto NO prueba que falte la firma, sino que selecciona
+    # los pagos a proveedor que -por tamano- deben pasar por revision de
+    # autorizacion senior. Se saltean los no traducibles (FX faltante -> los
+    # reporta C2).
     over = [(r["bill_id"], _usd(float(r["amount_local"]), r["currency"], LATEST))
             for r in _AP if r["status"] == "open"
             and (LATEST, r["currency"]) in _FX
             and _usd(float(r["amount_local"]), r["currency"], LATEST) >= approval_threshold]
     over_total = sum(a for _, a in over)
     checks.append({
-        "id": "C5", "name": "Disbursement authorization threshold",
+        "id": "C5", "name": "Large disbursements pending authorization review",
         "status": "PASS" if not over else "EXCEPTION",
         "severity": "HIGH",
         "value": {"n": len(over), "total": over_total, "threshold": approval_threshold},
-        "detail": (f"no single payment exceeds the USD {approval_threshold:,.0f} authorization threshold"
+        "detail": (f"no open payment is at or above the USD {approval_threshold:,.0f} authorization-review threshold"
                    if not over else
-                   f"{len(over)} payment(s) above the USD {approval_threshold:,.0f} authorization "
-                   f"threshold (total USD {over_total:,.0f}) require documented authorization"),
+                   f"{len(over)} open payment(s) at or above the USD {approval_threshold:,.0f} "
+                   f"authorization-review threshold (total USD {over_total:,.0f}): flagged for "
+                   f"documented authorization review (amount-based screen)"),
     })
 
     return {
