@@ -145,6 +145,18 @@ Bitacora de avance, fase por fase.
   (op loss, runway, AR 97%, AP 416.764 vencido, Tax 118.496 vencido, G&A, burn
   multiple, breakeven); board pack incorpora AR/AP/Tax.
 
+### Fase 7.3 — Treasury 13-week cash forecast  [OK]
+- finance_core.cash_forecast_13w: forecast directo de caja semanal. Caja inicial
+  + burn operativo recurrente (mensual prorrateado) + liquidacion one-time de los
+  saldos existentes AR (cobrado al 90%), AP y tax por semana de vencimiento (lo
+  vencido cae en semana 1). Asunciones explicitas, sin doble-conteo.
+- treasury_agent: reporta el forecast (caja final, semana valle, si se mantiene
+  positiva) junto al runway; escala CRITICA si la caja se vuelve negativa en el
+  horizonte (vista granular de corto plazo vs runway mensual).
+- evals: 2 checks nuevos (caja final 13s, se mantiene positiva). Numbers 13/13.
+- Corrida 2026-05: runway 9.4m; 13s termina en USD 5,14M, valle semana 13,
+  positiva en todo el horizonte (no dispara la escalacion critica).
+
 ## Backlog del departamento (multi-agente, hacia el "full finance department")
 - Faltantes mapeados (ver chat de gap analysis): Strategic Finance [HECHO],
   Administration/AR/AP/Tax [HECHO], Internal Controls (agente formal),
