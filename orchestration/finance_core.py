@@ -322,3 +322,75 @@ def tax_metrics(as_of="2026-05-31"):
             upcoming_30 += amt
     return {"pending_total": pending_total, "overdue": overdue,
             "upcoming_30d": upcoming_30, "by_jurisdiction": by_juris}
+
+
+# --------------------------------------------------------------------------
+# Forecast directo de caja a 13 semanas (Treasury). Deterministico, en USD.
+# --------------------------------------------------------------------------
+
+AR_COLLECTION_RATE = 0.90   # 10% de prevision sobre cobranzas
+
+
+def cash_forecast_13w(start="2026-06-01"):
+    """Forecast directo de caja a 13 semanas (semanal), en USD.
+
+    Modelo (asunciones explicitas y defendibles, para no doble-contar):
+    - Caja inicial = caja consolidada al cierre.
+    - Burn operativo recurrente: el burn mensual prorrateado por semana (x12/52),
+      aplicado cada semana. Es el drenaje go-forward, ya neto de la operacion.
+    - Capital de trabajo de saldos EXISTENTES al cierre (NO incluido en el burn):
+      se cobran las facturas AR abiertas (al 90%) y se pagan AP y tax pendientes
+      en la semana de su vencimiento; lo vencido cae en la semana 1 (catch-up).
+    El burn es el flujo en curso; los saldos abiertos son stock que se liquida
+    una sola vez -> no se duplica el revenue/costo.
+    """
+    start_d = datetime.date.fromisoformat(start)
+    start_cash = cash_total_usd()
+    monthly_burn = max(0.0, -pnl_usd(LATEST)["operating_income"])
+    weekly_burn = monthly_burn * 12.0 / 52.0
+
+    weeks = [{"inflow": 0.0, "outflow": 0.0} for _ in range(13)]
+
+    def _bucket(due_iso):
+        wi = (datetime.date.fromisoformat(due_iso) - start_d).days // 7
+        if wi < 0:
+            return 0          # vencido -> semana 1 (catch-up)
+        return wi if wi <= 12 else None   # mas alla del horizonte: se ignora
+
+    for r in _INV:            # AR: cobranzas (inflow), al 90%
+        if r["status"] != "open":
+            continue
+        b = _bucket(r["due_date"])
+        if b is not None:
+            weeks[b]["inflow"] += _usd(float(r["amount_local"]), r["currency"], LATEST) * AR_COLLECTION_RATE
+    for r in _AP:             # AP: pagos (outflow)
+        if r["status"] != "open":
+            continue
+        b = _bucket(r["due_date"])
+        if b is not None:
+            weeks[b]["outflow"] += _usd(float(r["amount_local"]), r["currency"], LATEST)
+    for r in _TAX:            # tax: pagos (outflow)
+        if r["status"] != "pending":
+            continue
+        b = _bucket(r["due_date"])
+        if b is not None:
+            weeks[b]["outflow"] += _usd(float(r["amount_local"]), r["currency"], LATEST)
+
+    cash = start_cash
+    rows = []
+    min_cash, min_week, week_negative = start_cash, 0, None
+    for i in range(13):
+        inflow = weeks[i]["inflow"]
+        outflow = weeks[i]["outflow"] + weekly_burn
+        net = inflow - outflow
+        cash += net
+        rows.append({"week": i + 1, "inflow": inflow, "outflow": outflow,
+                     "net": net, "ending_cash": cash})
+        if cash < min_cash:
+            min_cash, min_week = cash, i + 1
+        if week_negative is None and cash < 0:
+            week_negative = i + 1
+
+    return {"start": start, "starting_cash": start_cash, "weekly_burn": weekly_burn,
+            "rows": rows, "ending_cash": cash, "min_cash": min_cash,
+            "min_week": min_week, "week_cash_negative": week_negative}

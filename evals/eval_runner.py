@@ -29,7 +29,7 @@ import finance_core as fc
 from eval_set import (
     EXTRACTION_TRUTH, NUMERIC_TRUTH, NUMERIC_TOLERANCE, AR_OVERDUE_PCT_MIN,
     VARIANCE_TRUTH, VARIANCE_MATERIAL_COUNT, STRATEGIC_TRUTH, ADMIN_TRUTH,
-    GROUNDING_CASES, REFUSAL_SIGNALS,
+    FORECAST_TRUTH, GROUNDING_CASES, REFUSAL_SIGNALS,
 )
 
 
@@ -102,6 +102,16 @@ def suite_numbers():
         ok = abs(got - expected) <= tol
         total += 1
         passed += _check(label, ok, f"esperado ~{expected:,.0f}, obtenido {got:,.0f}")
+
+    # Regresion sobre el forecast de caja a 13 semanas.
+    f13 = fc.cash_forecast_13w()
+    exp = FORECAST_TRUTH["ending_cash_13w_usd"]
+    ok = abs(f13["ending_cash"] - exp) <= abs(exp) * NUMERIC_TOLERANCE
+    total += 1
+    passed += _check("13-week ending cash", ok, f"esperado ~{exp:,.0f}, obtenido {f13['ending_cash']:,.0f}")
+    ok = f13["week_cash_negative"] == FORECAST_TRUTH["week_cash_negative"]
+    total += 1
+    passed += _check("13-week cash stays positive", ok, f"week_negative={f13['week_cash_negative']}")
     return passed, total
 
 

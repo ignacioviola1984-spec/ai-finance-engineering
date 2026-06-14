@@ -1,8 +1,10 @@
 """
 treasury_agent.py - Treasury Agent del CFO office.
 
-Mide la liquidez: caja consolidada, burn operativo mensual y runway. Levanta
-flags si el runway es ajustado, y deja todo en el estado compartido.
+Mide la liquidez: caja consolidada, burn operativo mensual, runway, y un
+forecast directo de caja a 13 semanas (cobranzas AR, pagos AP/tax y burn
+recurrente). Levanta flags si el runway es ajustado o si la caja se vuelve
+negativa dentro del horizonte. Deja todo en el estado compartido.
 
 Numeros por codigo (deterministicos, reusa finance_core). El modelo razona y
 redacta; nunca inventa una cifra. El runway lo calcula el codigo; el modelo lo
@@ -54,19 +56,23 @@ def compute_treasury(period):
     op_income = fc.pnl_usd(period)["operating_income"]
     burn = -op_income if op_income < 0 else 0.0
     runway = (cash / burn) if burn > 0 else None   # None = sin burn (operativo positivo)
-    return {"cash": cash, "burn": burn, "runway": runway}
+    return {"cash": cash, "burn": burn, "runway": runway,
+            "forecast": fc.cash_forecast_13w()}
 
 
 def treasury_escalations(t):
     """Flags de Tesoreria por severidad. Lista de [sev, mensaje]."""
     out = []
     r = t["runway"]
-    if r is None:
-        return out
-    if r < RUNWAY_CRITICA:
+    if r is not None and r < RUNWAY_CRITICA:
         out.append(["CRITICAL", f"runway {r:.1f} months (< {RUNWAY_CRITICA}): liquidity risk"])
-    elif r < RUNWAY_ALTA:
+    elif r is not None and r < RUNWAY_ALTA:
         out.append(["HIGH", f"runway {r:.1f} months (< {RUNWAY_ALTA}): tight room to maneuver"])
+    # 13-week forecast: la caja se vuelve negativa dentro del horizonte (granular,
+    # distinto del runway mensual): riesgo critico de liquidez de corto plazo.
+    wn = t["forecast"]["week_cash_negative"]
+    if wn is not None:
+        out.append(["CRITICAL", f"cash turns negative in week {wn} of the 13-week forecast"])
     return out
 
 
@@ -80,22 +86,31 @@ def run(ctx=None):
     t = compute_treasury(PERIOD)
     esc = treasury_escalations(t)
     runway_txt = f"{t['runway']:.1f} months" if t["runway"] is not None else "no burn (operating positive)"
+    f = t["forecast"]
+    fcast_txt = (
+        f"13-week cash forecast: ending cash {_money(f['ending_cash'])}, "
+        f"trough {_money(f['min_cash'])} in week {f['min_week']}"
+        + (f"; CASH TURNS NEGATIVE in week {f['week_cash_negative']}." if f["week_cash_negative"]
+           else "; stays positive across the horizon.")
+    )
 
     facts = (
         f"Consolidated cash: {_money(t['cash'])}. Monthly operating burn: {_money(t['burn'])}. "
-        f"Computed runway: {runway_txt}."
+        f"Computed runway: {runway_txt}.\n{fcast_txt}"
     )
     narrative = agent(
-        "You are Treasury. Explain the runway situation and its implication in 2 sentences. "
-        "Use exactly the runway figure given; do not recompute it. Write in English.",
+        "You are Treasury. In 2-3 sentences, explain the liquidity situation: the runway and what "
+        "the 13-week cash forecast shows (ending cash, the trough week, and whether cash stays "
+        "positive). Use exactly the figures given; do not recompute. Write in English.",
         facts,
     )
 
     ctx.put("Treasury", {
-        "cash": t["cash"], "burn": t["burn"], "runway": t["runway"],
+        "cash": t["cash"], "burn": t["burn"], "runway": t["runway"], "forecast": f,
         "narrative": narrative, "escalations": esc,
     })
-    ctx.audit("Treasury", "ok", f"runway {runway_txt}; {len(esc)} escalation(s)")
+    ctx.audit("Treasury", "ok",
+              f"runway {runway_txt}; 13w ending {_money(f['ending_cash'])}; {len(esc)} escalation(s)")
 
     if own:
         print("\n--- TREASURY ---\n" + narrative)

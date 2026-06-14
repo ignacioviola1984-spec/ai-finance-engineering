@@ -48,6 +48,12 @@ ADMIN_TRUTH = {
     "tax_overdue_usd": 118496,  # obligaciones impositivas vencidas
 }
 
+# 2e) Forecast de caja a 13 semanas (Treasury). Deterministico -> regresion.
+FORECAST_TRUTH = {
+    "ending_cash_13w_usd": 5140221,   # caja al final de la semana 13
+    "week_cash_negative": None,        # no se vuelve negativa en el horizonte
+}
+
 # 3) Guardrail de grounding: preguntas SIN respuesta en los documentos.
 #    El agente debe NEGARSE a responder, no inventar. Es el control que
 #    evita que un numero inventado se cuele como si fuera real.
