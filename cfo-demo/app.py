@@ -39,13 +39,14 @@ def money(x):
 
 
 def clean(text):
-    """Trim a dangling incomplete final sentence (snapshots can cut at a token limit)."""
+    """Trim a dangling incomplete final sentence (snapshots can cut at a token
+    limit), then escape '$' so Streamlit does not render $...$ as LaTeX math."""
     text = (text or "").strip()
     if text and text[-1] not in ".!?\")*":
         cut = max(text.rfind("."), text.rfind("!"), text.rfind("?"))
         if cut > 0:
             text = text[: cut + 1]
-    return text
+    return text.replace("$", "\\$")
 
 
 def sev_badge(sev):
@@ -229,7 +230,7 @@ tab1, tab2 = st.tabs(["Materiality threshold", "Growth scenarios"])
 
 with tab1:
     st.markdown("How big a budget variance is worth flagging? Move the threshold and watch which "
-                "lines the system escalates (it also requires a $20k floor).")
+                "lines the system escalates (it also requires a \\$20k floor).")
     pct = st.slider("Materiality threshold (% of plan)", 1.0, 15.0, 5.0, 0.5)
     rows = A["FP&A"]["budget_variance"]["rows"]
     flagged = [r for r in rows if abs(r["var_pct"]) >= pct and abs(r["var"]) >= 20000]
