@@ -1,0 +1,19 @@
+entity_id,jurisdiction,tax_type,period,amount_local,currency,due_date,status
+US,United States,VAT,2026-05,100745.66,USD,2026-05-25,paid
+US,United States,Income tax (prov.),2026-05,23987.06,USD,2026-07-08,pending
+US,United States,Payroll withholding,2026-05,38379.3,USD,2026-05-27,pending
+UK,United Kingdom,VAT,2026-05,34001.66,GBP,2026-05-25,pending
+UK,United Kingdom,Income tax (prov.),2026-05,8095.63,GBP,2026-07-08,pending
+UK,United Kingdom,Payroll withholding,2026-05,12953.01,GBP,2026-05-27,paid
+DE,Germany,VAT,2026-05,34656.51,EUR,2026-06-09,paid
+DE,Germany,Income tax (prov.),2026-05,8251.55,EUR,2026-07-08,paid
+DE,Germany,Payroll withholding,2026-05,13202.48,EUR,2026-06-11,pending
+BR,Brazil,VAT,2026-05,154443.1,BRL,2026-06-09,pending
+BR,Brazil,Income tax (prov.),2026-05,36772.17,BRL,2026-06-24,pending
+BR,Brazil,Payroll withholding,2026-05,58835.47,BRL,2026-06-11,pending
+AR,Argentina,VAT,2026-05,22486431.63,ARS,2026-06-09,pending
+AR,Argentina,Income tax (prov.),2026-05,5353912.29,ARS,2026-07-08,pending
+AR,Argentina,Payroll withholding,2026-05,8566259.67,ARS,2026-06-11,pending
+IN,India,VAT,2026-05,2395228.1,INR,2026-05-25,pending
+IN,India,Income tax (prov.),2026-05,570292.4,INR,2026-07-08,pending
+IN,India,Payroll withholding,2026-05,912467.85,INR,2026-05-27,pending

@@ -75,8 +75,8 @@ def close_escalations(close):
         out.append(["CRITICAL", "P&L inconsistent: " + "; ".join(close["issues"])])
     if close["pnl"]["operating_income"] < 0:
         out.append(["HIGH", "operating loss: cost structure needs review"])
-    if close["ar"]["overdue_pct"] > 50:
-        out.append(["HIGH", f"{close['ar']['overdue_pct']:.0f}% of receivables are overdue"])
+    # Overdue receivables are owned and escalated by the Accounts Receivable agent
+    # (under Administration), so the risk has a single owner — not double-counted here.
     return out
 
 

@@ -127,14 +127,32 @@ Bitacora de avance, fase por fase.
 - finance_core.pnl_usd ahora expone S&M/R&D/G&A por separado.
 - evals: 3 checks nuevos (run-rate, burn multiple, Rule of 40). Numbers 9/9 PASS.
 
+### Fase 7.2 — Administration Agent (AR / AP / Tax)  [OK]
+- cfo-office/administration_agent.py: supervisor que SUB-ORQUESTA tres agentes
+  (ar_agent, ap_agent, tax_agent) sobre el mismo estado compartido y consolida
+  sus flags en un solo reporte "Administration". Jerarquia de 2 niveles:
+  CFO -> Administration -> AR/AP/Tax. Cuelga del CFO como par de los demas.
+- Datos nuevos: ap_invoices.csv (cuentas a pagar) y tax_obligations.csv
+  (obligaciones impositivas por jurisdiccion). AR reusa ar_invoices.csv.
+- finance_core: ar_metrics (overdue + DSO), ap_metrics (overdue/upcoming + DPO),
+  tax_metrics (pending/overdue/upcoming por jurisdiccion). Numeros por codigo.
+- Fix de doble-conteo: la cartera vencida la escala AHORA el AR agent (se saco
+  del Controller); cada riesgo con un unico dueno. Nuevo cross-check: AR del
+  AR agent ata al AR del Controller.
+- CFO ve 5 reportes (Controller, Treasury, Administration, FP&A, Strategic).
+- evals: 2 checks nuevos (AP vencido, Tax vencido). Suite numbers 11/11 PASS.
+- Corrida 2026-05 (en vivo): jerarquia completa OK; 8 escalamientos distintos
+  (op loss, runway, AR 97%, AP 416.764 vencido, Tax 118.496 vencido, G&A, burn
+  multiple, breakeven); board pack incorpora AR/AP/Tax.
+
 ## Backlog del departamento (multi-agente, hacia el "full finance department")
-- **Administration Agent** (supervisor nuevo) con sub-agentes **Tax**, **AP** y
-  **AR** — o esos tres dentro de Accounting. Definir si Admin cuelga del CFO como
-  par de Controller/Treasury/FP&A/Strategic.
 - Faltantes mapeados (ver chat de gap analysis): Strategic Finance [HECHO],
-  Internal Controls (agente formal), Finance Compliance, Audit (agente),
-  profundizar Treasury (cash forecast 13s) y Accounting&Close (recons/JE/accruals),
-  AgentOps (monitoreo + CI), Finance Data (capa unificada).
+  Administration/AR/AP/Tax [HECHO], Internal Controls (agente formal),
+  Finance Compliance, Audit (agente), profundizar Treasury (cash forecast 13s)
+  y Accounting&Close (recons/JE/accruals), AgentOps (monitoreo + CI),
+  Finance Data (capa unificada).
+- Demo publica (cfo-demo): por ahora muestra 4 agentes; falta sumar la pata de
+  Administration al snapshot/app y re-deployar (pendiente, opcional).
 
 ## Siguiente
 

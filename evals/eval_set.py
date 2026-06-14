@@ -41,6 +41,13 @@ STRATEGIC_TRUTH = {
     "rule_of_40": 42.4,         # crecimiento anualizado (proxy) + margen operativo
 }
 
+# 2d) Administration (AR/AP/Tax). Deterministicas -> regresion sobre el
+#     Administration Agent y sus sub-agentes.
+ADMIN_TRUTH = {
+    "ap_overdue_usd": 416764,   # cuentas por pagar vencidas
+    "tax_overdue_usd": 118496,  # obligaciones impositivas vencidas
+}
+
 # 3) Guardrail de grounding: preguntas SIN respuesta en los documentos.
 #    El agente debe NEGARSE a responder, no inventar. Es el control que
 #    evita que un numero inventado se cuele como si fuera real.

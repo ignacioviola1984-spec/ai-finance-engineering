@@ -29,6 +29,8 @@ _PNL = _load("pnl_activity.csv")
 _BS = _load("balance_sheet.csv")
 _BUD = _load("budget.csv")
 _INV = _load("ar_invoices.csv")
+_AP = _load("ap_invoices.csv")
+_TAX = _load("tax_obligations.csv")
 _CCY = {r["entity_id"]: r["currency"] for r in _ENT}
 
 
@@ -263,3 +265,60 @@ def strategic_metrics(periods=None):
         "breakeven_gap_pp": (-op_margin * 100) if op_margin < 0 else 0.0,
         "scenarios": strategic_scenarios(rev_latest, g, op_margin),
     }
+
+
+# --------------------------------------------------------------------------
+# Administration: AR, AP y Tax. Numeros deterministicos en USD (a tasa de
+# cierre LATEST, igual que el aging). El agente de Administracion narra; aca
+# se calculan las cifras.
+# --------------------------------------------------------------------------
+
+def ar_metrics(period=LATEST, as_of="2026-05-31"):
+    """Cuentas por cobrar: corriente/vencida (reusa ar_overdue_usd) + DSO."""
+    ar = ar_overdue_usd(as_of)
+    rev = pnl_usd(period)["revenue"]
+    asof = datetime.date.fromisoformat(as_of)
+    n_overdue = sum(1 for r in _INV if r["status"] == "open"
+                    and datetime.date.fromisoformat(r["due_date"]) < asof)
+    return {**ar, "dso": (ar["total"] / rev * 30) if rev else 0.0, "n_overdue": n_overdue}
+
+
+def ap_metrics(period=LATEST, as_of="2026-05-31"):
+    """Cuentas por pagar: abierto, vencido, por vencer (<=30d) y DPO."""
+    asof = datetime.date.fromisoformat(as_of)
+    open_total = overdue = upcoming_30 = 0.0
+    n_overdue = 0
+    for r in _AP:
+        if r["status"] != "open":
+            continue
+        amt = _usd(float(r["amount_local"]), r["currency"], LATEST)
+        open_total += amt
+        days = (datetime.date.fromisoformat(r["due_date"]) - asof).days
+        if days < 0:
+            overdue += amt
+            n_overdue += 1
+        elif days <= 30:
+            upcoming_30 += amt
+    cogs = pnl_usd(period)["cogs"]
+    return {"open_total": open_total, "overdue": overdue, "upcoming_30d": upcoming_30,
+            "n_overdue": n_overdue, "dpo": (open_total / cogs * 30) if cogs else 0.0}
+
+
+def tax_metrics(as_of="2026-05-31"):
+    """Obligaciones impositivas pendientes: total, vencido, por vencer y por jurisdiccion."""
+    asof = datetime.date.fromisoformat(as_of)
+    pending_total = overdue = upcoming_30 = 0.0
+    by_juris = {}
+    for r in _TAX:
+        if r["status"] != "pending":
+            continue
+        amt = _usd(float(r["amount_local"]), r["currency"], LATEST)
+        pending_total += amt
+        by_juris[r["jurisdiction"]] = by_juris.get(r["jurisdiction"], 0.0) + amt
+        days = (datetime.date.fromisoformat(r["due_date"]) - asof).days
+        if days < 0:
+            overdue += amt
+        elif days <= 30:
+            upcoming_30 += amt
+    return {"pending_total": pending_total, "overdue": overdue,
+            "upcoming_30d": upcoming_30, "by_jurisdiction": by_juris}

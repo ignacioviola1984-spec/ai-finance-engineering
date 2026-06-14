@@ -13,8 +13,12 @@ and writes prose. It never invents a figure.
 
 | Agent | File | What it owns |
 |-------|------|--------------|
-| **Controller** | `controller_agent.py` | Close review: P&L internal consistency, margins, AR overdue, risk flags |
+| **Controller** | `controller_agent.py` | Close review: P&L internal consistency, margins, risk flags |
 | **Treasury** | `treasury_agent.py` | Liquidity: cash, monthly burn, runway |
+| **Administration** | `administration_agent.py` | Supervisor: coordinates AR, AP & Tax and consolidates their working-capital + compliance flags |
+| ↳ Accounts Receivable | `ar_agent.py` | Receivables, overdue, DSO, collections risk |
+| ↳ Accounts Payable | `ap_agent.py` | Payables, overdue & upcoming, DPO, supplier risk |
+| ↳ Tax | `tax_agent.py` | Tax obligations, overdue & upcoming by jurisdiction, compliance risk |
 | **FP&A** | `fpa_agent.py` | Forecast (next period), MoM variance, **budget-vs-actual** variance, anomalies |
 | **Strategic Finance** | `strategic_finance_agent.py` | Run-rate, Rule of 40, burn multiple, magic number, growth scenarios, path to breakeven |
 | **CFO** | `cfo_orchestrator.py` | Runs the others, reconciles them, consolidates escalations, single HITL, board pack |
@@ -31,14 +35,18 @@ makes the system auditable: you can see who wrote what, and when.
 
 ```
 CFO orchestrator
-  ├─ 1) Controller.run(ctx)   → close, margins, AR             + flags
-  ├─ 2) Treasury.run(ctx)     → cash, burn, runway             + flags
-  ├─ 3) FP&A.run(ctx)         → forecast, variances, anomalies + flags
-  ├─ 4) Strategic.run(ctx)    → run-rate, efficiency, breakeven + flags
-  ├─ 5) cross_checks(ctx)     → agents must agree on shared numbers
-  ├─ 6) gather_escalations    → consolidate flags by severity
-  ├─ 7) hitl_gate             → ONE human approval if serious flags
-  └─ 8) board pack + actions  → consolidated, fixed only on approval
+  ├─ 1) Controller            → close, margins                  + flags
+  ├─ 2) Treasury              → cash, burn, runway              + flags
+  ├─ 3) Administration        → sub-orchestrates AR / AP / Tax  + flags
+  │        ├─ Accounts Receivable → overdue, DSO
+  │        ├─ Accounts Payable    → overdue, DPO
+  │        └─ Tax                 → overdue, compliance
+  ├─ 4) FP&A                  → forecast, variances, anomalies  + flags
+  ├─ 5) Strategic             → run-rate, efficiency, breakeven + flags
+  ├─ 6) cross_checks          → agents must agree on shared numbers
+  ├─ 7) gather_escalations    → consolidate flags by severity
+  ├─ 8) hitl_gate             → ONE human approval if serious flags
+  └─ 9) board pack + actions  → consolidated, fixed only on approval
 ```
 
 Run the whole office (needs `ANTHROPIC_API_KEY` in the repo-root `.env`):
@@ -47,9 +55,9 @@ Run the whole office (needs `ANTHROPIC_API_KEY` in the repo-root `.env`):
 python cfo_orchestrator.py
 ```
 
-Each agent also runs standalone (`python fpa_agent.py`, etc.) — in that mode it
-produces its own board pack and its own gate. Under the orchestrator those are
-suppressed so there is exactly **one** CFO gate, not four.
+Each agent also runs standalone (`python fpa_agent.py`, `python administration_agent.py`,
+etc.) — in that mode it produces its own output and saves. Under the orchestrator
+those are suppressed so there is exactly **one** CFO gate, not one per agent.
 
 ## Design decisions (the "why")
 
@@ -62,11 +70,17 @@ suppressed so there is exactly **one** CFO gate, not four.
   analysis and flags only; the CFO assembles the consolidated board pack and
   owns the single human-in-the-loop approval. Standalone runs keep their own
   gate for solo use.
-- **Escalations don't double-count.** Controller escalates the operating loss
-  and overdue AR; Treasury escalates runway; FP&A escalates only *unfavorable*
-  material variances vs budget; Strategic Finance owns the *trajectory/
-  efficiency* lens (capital efficiency and whether growth alone reaches
-  breakeven) that none of the others cover. Each risk has one owner.
+- **Hierarchical orchestration.** Administration is itself a sub-orchestrator:
+  the CFO delegates the administrative function to it, and it coordinates
+  AR/AP/Tax and rolls their flags into one report. The CFO sees five reports,
+  not eight — the hierarchy mirrors a real org and keeps the top level clean.
+- **Escalations don't double-count.** Each risk has exactly one owner:
+  Controller → operating loss; Treasury → runway; Administration (via its
+  sub-agents) → overdue receivables, overdue payables, overdue tax; FP&A →
+  material *unfavorable* budget variances; Strategic Finance → capital
+  efficiency and whether growth alone reaches breakeven. The overdue-AR flag,
+  for instance, was deliberately moved off the Controller onto the AR agent so
+  it has a single owner.
 - **Two variance lenses in FP&A.** MoM ("how did we move vs last month") and
   budget-vs-actual ("did we hit the plan") answer different questions; the
   office reports both. Budget-vs-actual reuses the verified `finance_core`

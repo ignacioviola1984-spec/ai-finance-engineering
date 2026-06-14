@@ -184,6 +184,55 @@ with open(f"{DATA}/ar_invoices.csv", "w", newline="") as f:
     w = csv.writer(f); w.writerow(["invoice_id","entity_id","customer","currency","amount_local","issue_date","due_date","status"])
     w.writerows(inv_rows)
 
+# ---- ap_invoices.csv (facturas de proveedores, para AP / payables) ----
+# Misma estructura que AR pero del lado de pagar. Mezcla de vencidas y por
+# vencer, en moneda local. Sirve para DPO, vencidos y vencimientos proximos.
+vendors = ["AWS","Stripe","Salesforce","WeWork","Deloitte","LinkedIn",
+           "Google Cloud","Datadog","Cuatrecasas","Marsh"]
+ap_rows = []
+ap_id = 5000
+for eid, name, country, cur, scale in entities:
+    rate = fx[cur][-1]
+    last_rev_usd = 380000*scale*(1.06**4)
+    n = random.randint(8, 14)
+    for _ in range(n):
+        ap_id += 1
+        days_old = random.choice([random.randint(0,20), random.randint(0,20),
+                                  random.randint(35,55), random.randint(65,90)])
+        issue = asof - datetime.timedelta(days=days_old+30)
+        due = issue + datetime.timedelta(days=30)
+        amt_usd = last_rev_usd * random.uniform(0.02, 0.10)
+        paid = random.random() < 0.45
+        ap_rows.append([f"BILL-{ap_id}", eid, random.choice(vendors), cur,
+                        round(amt_usd*rate,2), issue.isoformat(), due.isoformat(),
+                        "paid" if paid else "open"])
+
+with open(f"{DATA}/ap_invoices.csv", "w", newline="") as f:
+    w = csv.writer(f); w.writerow(["bill_id","entity_id","vendor","currency","amount_local","issue_date","due_date","status"])
+    w.writerows(ap_rows)
+
+# ---- tax_obligations.csv (obligaciones impositivas por entidad/jurisdiccion) ----
+# Cada entidad tiene IVA, impuesto a las ganancias (provision) y retenciones,
+# con vencimientos alrededor del cierre. Algunas pendientes, algunas vencidas.
+tax_rows = []
+for eid, name, country, cur, scale in entities:
+    rate = fx[cur][-1]
+    mrev = 380000*scale*(1.06**4)
+    obligations = [
+        ("VAT",                 mrev*0.21,  random.choice([-6, 9, 17])),
+        ("Income tax (prov.)",  mrev*0.05,  random.choice([24, 38])),
+        ("Payroll withholding", mrev*0.08,  random.choice([-4, 11])),
+    ]
+    for ttype, amt_usd, due_offset in obligations:
+        due = asof + datetime.timedelta(days=due_offset)
+        status = "paid" if random.random() < 0.40 else "pending"
+        tax_rows.append([eid, country, ttype, last, round(amt_usd*rate, 2), cur,
+                         due.isoformat(), status])
+
+with open(f"{DATA}/tax_obligations.csv", "w", newline="") as f:
+    w = csv.writer(f); w.writerow(["entity_id","jurisdiction","tax_type","period","amount_local","currency","due_date","status"])
+    w.writerows(tax_rows)
+
 print("Generado en", DATA)
 for fn in sorted(os.listdir(DATA)):
     print(" ", fn)

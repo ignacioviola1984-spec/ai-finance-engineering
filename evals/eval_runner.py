@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.join(ROOT, "document-intelligence"))
 import finance_core as fc
 from eval_set import (
     EXTRACTION_TRUTH, NUMERIC_TRUTH, NUMERIC_TOLERANCE, AR_OVERDUE_PCT_MIN,
-    VARIANCE_TRUTH, VARIANCE_MATERIAL_COUNT, STRATEGIC_TRUTH,
+    VARIANCE_TRUTH, VARIANCE_MATERIAL_COUNT, STRATEGIC_TRUTH, ADMIN_TRUTH,
     GROUNDING_CASES, REFUSAL_SIGNALS,
 )
 
@@ -89,6 +89,19 @@ def suite_numbers():
         ok = abs(got - expected) <= tol
         total += 1
         passed += _check(label, ok, f"esperado ~{expected:,.2f}, obtenido {got:,.2f}")
+
+    # Regresion sobre Administration (AR/AP/Tax), deterministica.
+    ap = fc.ap_metrics()
+    tx = fc.tax_metrics()
+    admin_checks = [
+        ("overdue payables (AP)", ap["overdue"], ADMIN_TRUTH["ap_overdue_usd"]),
+        ("overdue tax", tx["overdue"], ADMIN_TRUTH["tax_overdue_usd"]),
+    ]
+    for label, got, expected in admin_checks:
+        tol = max(abs(expected) * NUMERIC_TOLERANCE, 1.0)
+        ok = abs(got - expected) <= tol
+        total += 1
+        passed += _check(label, ok, f"esperado ~{expected:,.0f}, obtenido {got:,.0f}")
     return passed, total
 
 

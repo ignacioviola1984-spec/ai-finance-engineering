@@ -47,6 +47,7 @@ MODEL = "claude-sonnet-4-6"
 
 BURN_MULTIPLE_MAX = 2.0   # Bessemer: >2 es ineficiente
 MAGIC_MIN = 0.75          # >0.75 es buen retorno comercial
+STRUCTURAL_GAP_PP = 20.0  # brecha de margen tan grande que crecer no la cierra
 
 
 def agent(system, prompt, max_tokens=600):
@@ -76,10 +77,13 @@ def strategic_escalations(m):
     if bm is not None and bm > BURN_MULTIPLE_MAX:
         out.append(["HIGH", f"burn multiple {bm:.1f}x (> {BURN_MULTIPLE_MAX:.0f}): {bm:.1f} burned "
                             f"per USD of new revenue; low capital efficiency"])
-    if m["op_margin"] < 0:
-        out.append(["HIGH", f"growth alone won't reach breakeven: operating margin "
-                            f"({m['op_margin']*100:.0f}%) doesn't improve on volume; "
-                            f"~{m['breakeven_gap_pp']:.0f} pp of margin improvement needed, not more growth"])
+    # Estructural por MAGNITUD, no por el signo del periodo (el operating loss lo
+    # escala el Controller): solo cuando la brecha de margen es tan grande que
+    # crecer no la cierra. Asi el trigger no se solapa con el del Controller.
+    if m["breakeven_gap_pp"] > STRUCTURAL_GAP_PP:
+        out.append(["HIGH", f"growth alone won't reach breakeven: a {m['breakeven_gap_pp']:.0f} pp "
+                            f"margin gap (operating margin {m['op_margin']*100:.0f}%) won't close on "
+                            f"volume; needs structural margin improvement, not more growth"])
     return out
 
 
