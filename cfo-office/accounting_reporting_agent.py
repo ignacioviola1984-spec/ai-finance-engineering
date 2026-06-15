@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.join(ROOT, "orchestration"))   # finance_core
 sys.path.insert(0, HERE)                                  # shared_state + sub-agentes
 
 from shared_state import CFOContext
+import review
 import accounting_close_agent
 import financial_reporting_agent
 
@@ -52,9 +53,18 @@ def run(ctx=None):
     ctx = ctx or CFOContext()
     ctx.audit("Accounting & Reporting", "start", "coordinating close and reporting")
 
-    # Close first, then reporting (you report off the closed books).
+    # Close first (signed off by the Accounting Manager), then reporting (signed
+    # off by Technical Accounting / Reporting): maker-checker per function.
     accounting_close_agent.run(ctx)
+    cr = ctx.get("Accounting & Close", "reconciliations", {})
+    review.review(ctx, "Accounting & Close",
+                  f"close {'reconciled' if cr.get('all_reconciled') else str(cr.get('n_open_items',0))+' open item(s)'}, "
+                  f"articulation {cr.get('articulation',{}).get('status','?')}")
     financial_reporting_agent.run(ctx)
+    bs = ctx.get("Financial Reporting", "balance_sheet", {})
+    cf = ctx.get("Financial Reporting", "cash_flow", {})
+    review.review(ctx, "Financial Reporting",
+                  f"balance foots ({abs(bs.get('balance_check',0))<=1.0}), cash flow ties ({bool(cf.get('foots'))})")
 
     esc = []
     for a in SUB_AGENTS:
@@ -68,7 +78,8 @@ def run(ctx=None):
         bits,
     )
 
-    ctx.put("Accounting & Reporting", {"narrative": narrative, "escalations": esc, "covers": SUB_AGENTS})
+    ctx.put("Accounting & Reporting", {"narrative": narrative, "escalations": esc, "covers": SUB_AGENTS,
+                                       "reviews": {a: ctx.get(a, "review") for a in SUB_AGENTS}})
     ctx.audit("Accounting & Reporting", "ok", f"close + reporting consolidated; {len(esc)} escalation(s)")
 
     if own:

@@ -252,31 +252,28 @@ Bitacora de avance, fase por fase.
   demo ahora 7,50M (coincide con el repo). Probado headless con Streamlit AppTest.
   Falta SOLO el re-deploy en Streamlit Cloud (paso manual de Nacho).
 
-## Siguiente
+### Fase 8 — Modelo realista: HITL por agente (maker-checker)  [OK]
+- PRINCIPIO (Nacho, 2026-06-14): arriba de CADA agente un HITL con expertise de
+  dominio. "Solo asi funciona" -> condicion de viabilidad. Un CFO generalista no
+  puede aprobar competentemente TODO el flujo operativo (toca de oido); por eso el
+  modelo anterior (8 agentes + 1 gate del CFO) era una simplificacion irreal.
+- Implementado (cfo-office/review.py): maker-checker por funcion. Cada funcion la
+  firma su experto -> Accounting Manager firma Controller y el cierre; Treasurer
+  firma Treasury; Collections/AP/Tax Managers firman AR/AP/Tax; Reporting Manager
+  firma los estados; FP&A Director; VP Finance; Internal Controls Manager; Internal
+  Audit Lead. 11 firmas de primera linea + gate FINAL del CFO sobre lo
+  consolidado/material (no re-revisa el detalle).
+- Si una funcion no esta firmada por su revisor -> el cierre se BLOQUEA antes del
+  CFO (no se fabrica board pack sobre trabajo no revisado). Probado: un rechazo de
+  Tax bloquea. Corrida auto (CFO_AUTO_REVIEW=1): 11/11 firmadas + CFO, 52 eventos
+  de audit. review.py auto-aprueba en no-interactivo (replay/CI), marcado como tal.
+- Reframe: el sistema es un MULTIPLICADOR sobre cada experto, no un reemplazo del
+  equipo -> lo que lo hace confiable Y adoptable.
+- Discurso del repo CORREGIDO: README, cfo-office/README y PRODUCTION-READINESS ya
+  no venden "un solo gate"; describen el modelo de dos niveles. El demo (cfo-demo)
+  muestra las 11 firmas por experto + el gate final del CFO. Evals 22/22.
 
-### Fase 8 (planeada) — Modelo de implementacion REAL: HITL por agente
-- PRINCIPIO DE DISENO (Nacho, firme 2026-06-14): arriba de CADA agente TIENE que
-  haber un HITL con conocimiento profundo y expertise en el area. "Solo asi va a
-  funcionar" -> es la CONDICION de viabilidad, no opcional. El AI no tiene el
-  juicio de dominio; el experto lo aporta y es el humano responsable de esa funcion.
-- Reframe que habilita: NO es "8 agentes reemplazan al equipo + 1 CFO aprueba",
-  es un MULTIPLICADOR sobre cada experto (el agente hace el trabajo pesado -datos,
-  conciliacion, draft, excepciones- y el experto valida con juicio y firma). Mismos
-  (o menos, mas apalancados) humanos, mucho mas rapidos. Es lo que lo hace confiable
-  Y adoptable: el experto confia en una herramienta que lo potencia y que controla.
-- Decision de diseno (Nacho, 17 anios en finanzas, 2026-06-14): el modelo actual
-  (8 agentes hacen el trabajo + UN solo gate del CFO) es una VISION a futuro, no
-  realizable en la practica con los modelos de hoy. Un CFO es generalista ("toca
-  de oido" contabilidad, impuestos, planning); no se le puede delegar la
-  aprobacion de TODO el flujo operativo financiero.
-- Refactor: poner un HITL arriba de CADA agente (revision por experto de dominio
-  -contabilidad revisa el cierre, impuestos revisa tax, tesoreria revisa treasury,
-  FP&A revisa planning, etc.: maker-checker por funcion). El gate del CFO pasa a
-  ser una firma final, mas liviana, sobre el board pack consolidado + lo material/
-  transversal, no una revision de cada detalle operativo.
-- Al implementarlo, REVISAR el discurso actual de "un solo gate humano" (README,
-  cfo-office/README, PRODUCTION-READINESS.md): ese principio se revisa cuando el
-  refactor exista, no antes.
+## Siguiente
 
 ### Fase 6.2 — Deploy + demo
 - Subir online (host gratis) para URL publica.

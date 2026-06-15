@@ -15,9 +15,13 @@ cfo_state.json.
   6) Strategic Finance     -> run-rate, Rule of 40, burn multiple, camino a breakeven
   7) Internal Controls     -> aseguramiento: integridad de libros, FX, corte, autorizaciones
   8) Audit                 -> re-ejecuta el cierre/estados de forma independiente y opina
+  -- Primera linea (maker-checker): cada funcion la firma SU experto de dominio
+     (Accounting firma el cierre, Tax firma tax, Treasury firma treasury, etc.).
   9) cross-checks: los agentes deben concordar en los numeros compartidos
- 10) consolidar escalamientos + UN gate humano
- 11) board pack consolidado + acciones (Claude), fijados solo si el humano aprueba
+ 10) consolidar escalamientos
+ 11) gate FINAL del CFO: firma lo consolidado + lo material (no re-revisa el
+     detalle); requiere que la primera linea ya este firmada por sus expertos
+ 12) board pack consolidado + acciones (Claude), fijados solo si el CFO aprueba
 
 Cada agente deja su analisis y sus flags en el estado compartido; el CFO los
 consume. Los numeros los calculan los agentes por codigo (finance_core); el
@@ -40,6 +44,7 @@ sys.path.insert(0, HERE)                                  # shared_state + agent
 
 import finance_core as fc
 from shared_state import CFOContext
+import review
 import controller_agent
 import treasury_agent
 import administration_agent
@@ -148,15 +153,30 @@ def gather_escalations(ctx):
     return sorted(esc, key=lambda e: order.get(e[0], 9))
 
 
-def hitl_gate(esc):
+def cfo_final_gate(ctx, esc):
+    """The CFO's FINAL sign-off — the second tier, not a detail review.
+
+    Precondition: every function must already be signed off by its domain expert
+    (the first line). The CFO does NOT re-review each operational detail (a
+    generalist can't); the CFO confirms the first line cleared and signs off on
+    the consolidated board pack and the material / cross-cutting items.
+    """
+    fl = review.first_line_status(ctx)
+    print(f"\n  [CFO final sign-off] First line: {len(fl['approved'])}/{fl['total']} "
+          "functions signed off by their domain experts.")
+    if not fl["all_approved"]:
+        print("   NOT cleared by their reviewers (must resolve before the CFO can sign): "
+              + ", ".join(fl["rejected"]))
+        return False
     serious = [e for e in esc if e[0] in ("HIGH", "CRITICAL")]
-    if not serious:
+    if serious:
+        print("   Material / cross-cutting items for the CFO:")
+        for sev, msg in serious:
+            print(f"     - [{sev}] {msg}")
+    if review._auto():
         return True
-    print("\n  [human-in-the-loop] Escalations that need your sign-off:")
-    for sev, msg in serious:
-        print(f"     - [{sev}] {msg}")
     try:
-        return input("  Approve and fix the CFO board pack? [y/N]: ").strip().lower() == "y"
+        return input("  CFO — approve the consolidated board pack? [y/N]: ").strip().lower() == "y"
     except EOFError:
         return False
 
@@ -218,22 +238,38 @@ def run(period=PERIOD):
     ctx = CFOContext()
     ctx.audit("CFO", "start", f"running the office for {period}")
 
+    # Each function runs (the maker) and is signed off by its domain expert (the
+    # checker) — first-line maker-checker. Administration and Accounting &
+    # Reporting review their own sub-functions inside (AR/AP/Tax, Close/Reporting).
     print("\n[1/8] Controller...")
     controller_agent.run(ctx)
+    p = ctx.get("Controller", "pnl", {})
+    review.review(ctx, "Controller", f"operating income USD {p.get('operating_income',0):,.0f}")
     print("\n[2/8] Treasury...")
     treasury_agent.run(ctx)
+    review.review(ctx, "Treasury",
+                  f"cash USD {ctx.get('Treasury','cash',0):,.0f}, runway "
+                  + (f"{ctx.get('Treasury','runway') or 0:.1f} months" if ctx.get('Treasury','runway') else "n/a"))
     print("\n[3/8] Administration (AR / AP / Tax)...")
     administration_agent.run(ctx)
     print("\n[4/8] Accounting & Reporting (close + statements)...")
     accounting_reporting_agent.run(ctx)
     print("\n[5/8] FP&A...")
     fpa_agent.run(ctx)
+    review.review(ctx, "FP&A", "forecast, MoM and budget variance, anomalies")
     print("\n[6/8] Strategic Finance...")
     strategic_finance_agent.run(ctx)
+    sm = ctx.get("Strategic Finance", "metrics", {})
+    review.review(ctx, "Strategic Finance",
+                  f"Rule of 40 {sm.get('rule_of_40',0):.0f}, burn multiple {sm.get('burn_multiple') or 0:.1f}x")
     print("\n[7/8] Internal Controls...")
     internal_controls_agent.run(ctx)
+    cs = ctx.get("Internal Controls", "summary", {})
+    review.review(ctx, "Internal Controls",
+                  f"{cs.get('n_pass',0)} pass / {cs.get('n_fail',0)} fail / {cs.get('n_exception',0)} exception(s)")
     print("\n[8/8] Audit (independent assurance)...")
     audit_agent.run(ctx)
+    review.review(ctx, "Audit", f"opinion {ctx.get('Audit','opinion','?')}")
 
     # Cross-checks between agents (before escalating or writing).
     issues = cross_checks(ctx)
@@ -246,19 +282,31 @@ def run(period=PERIOD):
         return ctx
     ctx.audit("cross_check", "ok", "agents consistent on the shared numbers")
 
+    # Record the first-line review status (maker-checker per function).
+    fl = review.first_line_status(ctx)
+    ctx.put("CFO", {"first_line": fl})
+    if not fl["all_approved"]:
+        # A function was not signed off by its domain expert -> the close is not
+        # ready for the CFO. Do not fabricate a board pack over un-reviewed work.
+        ctx.audit("CFO", "blocked", "first-line review incomplete: " + ", ".join(fl["rejected"]))
+        ctx.put("CFO", {"status": "blocked_first_line"})
+        ctx.save()
+        print("\n  Pipeline stopped: a function was not signed off by its domain expert.")
+        return ctx
+
     # Consolidate escalations from all agents.
     esc = gather_escalations(ctx)
     for sev, msg in esc:
         ctx.audit("escalation", sev, msg)
 
-    # A single human gate before fixing the CFO board pack.
-    if not hitl_gate(esc):
+    # Second tier: the CFO's final sign-off on the consolidated pack + material items.
+    if not cfo_final_gate(ctx, esc):
         ctx.put("CFO", {"status": "rejected"})
-        ctx.audit("CFO", "REJECTED", "human did not approve; board pack not fixed")
+        ctx.audit("CFO", "REJECTED", "CFO did not approve; board pack not fixed")
         ctx.save()
-        print("\n  Stopped by human decision.")
+        print("\n  Stopped by CFO decision.")
         return ctx
-    ctx.audit("CFO", "approved", "human approved to continue")
+    ctx.audit("CFO", "approved", "CFO signed off the consolidated board pack")
 
     board = compose_board_pack(ctx)
     actions = compose_actions(ctx)

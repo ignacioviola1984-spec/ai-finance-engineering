@@ -28,6 +28,7 @@ sys.path.insert(0, os.path.join(ROOT, "orchestration"))   # finance_core
 sys.path.insert(0, HERE)                                  # shared_state + sub-agentes
 
 from shared_state import CFOContext
+import review
 import ar_agent
 import ap_agent
 import tax_agent
@@ -52,10 +53,22 @@ def run(ctx=None):
     ctx = ctx or CFOContext()
     ctx.audit("Administration", "start", "coordinating AR, AP and Tax")
 
-    # Corre los tres sub-agentes sobre el mismo estado compartido.
+    # Corre cada sub-agente y lo somete a la firma de SU experto de dominio
+    # (maker-checker de primera linea): Collections firma AR, AP firma AP, el
+    # Tax Manager firma Tax. No es el Head of Administration el que aprueba el
+    # detalle de cada uno: cada funcion la firma quien tiene el conocimiento.
     ar_agent.run(ctx)
+    ar = ctx.get("Accounts Receivable", "metrics", {})
+    review.review(ctx, "Accounts Receivable",
+                  f"AR overdue {ar.get('overdue_pct',0):.0f}% (USD {ar.get('overdue',0):,.0f}), DSO {ar.get('dso',0):.0f}d")
     ap_agent.run(ctx)
+    ap = ctx.get("Accounts Payable", "metrics", {})
+    review.review(ctx, "Accounts Payable",
+                  f"AP overdue USD {ap.get('overdue',0):,.0f}, DPO {ap.get('dpo',0):.0f}d")
     tax_agent.run(ctx)
+    tx = ctx.get("Tax", "metrics", {})
+    review.review(ctx, "Tax",
+                  f"Tax overdue USD {tx.get('overdue',0):,.0f} of USD {tx.get('pending_total',0):,.0f} pending")
 
     # Consolida sus escalamientos en un unico "Administration" (sin doble conteo:
     # el CFO ve a Administration como un solo reporte, no a AR/AP/Tax por separado).
@@ -71,7 +84,8 @@ def run(ctx=None):
         bits,
     )
 
-    ctx.put("Administration", {"narrative": narrative, "escalations": esc, "covers": SUB_AGENTS})
+    ctx.put("Administration", {"narrative": narrative, "escalations": esc, "covers": SUB_AGENTS,
+                               "reviews": {a: ctx.get(a, "review") for a in SUB_AGENTS}})
     ctx.audit("Administration", "ok", f"AR/AP/Tax consolidated; {len(esc)} escalation(s)")
 
     if own:

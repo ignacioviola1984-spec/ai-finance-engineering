@@ -45,19 +45,30 @@ These are not demo conveniences; they are how serious finance-AI must be built:
    "overdue"). In production the commentary is treated as a draft for human
    review, heavily constrained.
 
-## The human-in-the-loop question
+## The human-in-the-loop model (now two-tier — maker-checker)
 
-This system has **one** human gate, at the CFO — deliberately, to avoid approval
-fatigue. That is the right *direction* (human-in-the-loop, not full autonomy),
-but the *number* of gates in a real close is different:
+An earlier version of this system had **one** human gate, at the CFO. That was
+wrong, and it has been corrected — because finance runs on **segregation of
+duties**, and a generalist CFO cannot competently approve the entire operational
+flow (they "play by ear" on accounting, tax, planning).
 
-- **One gate per agent** → wrong (approval fatigue; nobody reads the 8th prompt).
-- **One gate total** → a demo simplification.
-- **Production = a few gates, risk- and role-based** → because finance runs on
-  segregation of duties: the preparer is not the approver; journal entries need
-  preparer + reviewer; the Controller signs the close, the CFO signs the board
-  pack, the audit committee reviews. Immaterial items auto-clear; material items
-  escalate. The materiality routing already in the codebase is the seed of this.
+The implemented model is **two-tier (maker-checker)**:
+
+- **First line — per-function domain-expert sign-off.** Each function is signed
+  off by the human with real depth in that area: the Tax Manager signs tax, the
+  Treasurer signs treasury, the Accounting Manager signs the close, the FP&A
+  Director signs planning, and so on (`review.py`). The agent is the *maker*; the
+  expert is the *checker*. If any function is not signed off, the close is
+  **blocked before the CFO** — no board pack is fabricated over un-reviewed work.
+- **Second tier — the CFO's final sign-off** on the *consolidated* board pack and
+  the material / cross-cutting items only. Not a pseudo-review of every detail.
+
+This is why "one gate per agent" (approval fatigue) and "one gate total" (what
+this repo used to claim) are both wrong; the realistic answer is *one expert
+sign-off per function + a final CFO gate*. The remaining production refinement is
+**materiality- and risk-based routing** (immaterial items auto-clear; only
+material items require a human), for which the materiality thresholds already in
+the codebase are the seed.
 
 ## How it deploys today vs. what is still "vision"
 

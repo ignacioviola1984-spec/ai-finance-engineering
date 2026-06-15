@@ -66,6 +66,15 @@ def stmt_table(rows):
     st.table([{"": label, " ": val} for label, val in rows])
 
 
+def signoff(name):
+    """Green maker-checker stamp: which domain expert signed off this function."""
+    r = A.get(name, {}).get("review")
+    if not r:
+        return
+    st.markdown(f"<span style='color:#0F6E56;font-size:0.82rem;font-weight:600'>"
+                f"&#10003; First-line sign-off · {r['reviewer']}</span>", unsafe_allow_html=True)
+
+
 # --------------------------------------------------------------------------
 # Light styling.
 # --------------------------------------------------------------------------
@@ -94,9 +103,11 @@ st.markdown(
 )
 st.markdown(
     "<span class='small'>Eight specialist agents — across accounting, treasury, working capital, "
-    "planning, controls and audit — report to a <b>CFO agent</b> that reconciles their numbers, "
-    "flags the risks, asks for one human approval, and writes the board report. Running on a "
-    f"synthetic SaaS company, <b>Lumen Inc.</b>, closing <b>{PERIOD}</b>.</span>",
+    "planning, controls and audit — do the work, and <b>each function is signed off by its own "
+    "domain expert</b> (maker-checker: the Tax Manager signs tax, the Treasurer signs treasury, "
+    "and so on). The <b>CFO agent</b> then reconciles the numbers and gives a single <b>final "
+    "sign-off</b> on the consolidated board pack and the material items. Running on a synthetic "
+    f"SaaS company, <b>Lumen Inc.</b>, closing <b>{PERIOD}</b>.</span>",
     unsafe_allow_html=True)
 
 with st.expander("ℹ️  What am I looking at? (30-second version)"):
@@ -107,7 +118,9 @@ with st.expander("ℹ️  What am I looking at? (30-second version)"):
         "numbers, reason, and write the commentary** — they never invent a figure. That's the core design rule.\n"
         "- The books **reconcile**, the three financial statements **articulate**, and an **independent "
         "audit agent** re-derives the figures and issues an opinion.\n"
-        "- A **human approves** before anything reaches the board (you'll do that below).\n"
+        "- **Two-tier human control (maker-checker):** each function is signed off by the domain "
+        "expert who actually has that depth (a generalist CFO can't competently approve everything), "
+        "and the **CFO gives the final consolidated sign-off** (you'll do that below).\n"
         "- This page replays a **real saved run** so it's instant and free. The widgets recompute live.\n"
         "- Built by **Ignacio Viola** — 17 years in senior finance, now building the AI systems. "
         "Full source on [GitHub](https://github.com/ignacioviola1984-spec/ai-finance-engineering)."
@@ -174,6 +187,7 @@ if st.session_state.ran:
         c[3].metric("Receivables overdue", f"{ctrl['ar']['overdue_pct']:.0f}%", "of total AR", delta_color="off")
         with st.expander("📄 Controller's full analysis"):
             st.markdown(clean(ctrl["narrative"]))
+        signoff("Controller")
 
     # Treasury
     with st.container():
@@ -189,6 +203,7 @@ if st.session_state.ran:
                         delta_color="off")
         with st.expander("📄 Treasury's full analysis"):
             st.markdown(clean(trez["narrative"]))
+        signoff("Treasury")
 
     # Administration → AR / AP / Tax
     with st.container():
@@ -206,6 +221,9 @@ if st.session_state.ran:
             st.markdown("**Accounts Receivable** — " + clean(ar["narrative"]))
             st.markdown("**Accounts Payable** — " + clean(ap["narrative"]))
             st.markdown("**Tax** — " + clean(tax["narrative"]))
+        signoff("Accounts Receivable")
+        signoff("Accounts Payable")
+        signoff("Tax")
 
     # Accounting & Reporting → close + the three financial statements
     with st.container():
@@ -255,6 +273,8 @@ if st.session_state.ran:
                    f"({money(cf['net_change'])} = {money(cf['actual_change'])}).")
         with st.expander("📄 Accounting & Reporting — full commentary"):
             st.markdown(clean(A["Accounting & Reporting"]["narrative"]))
+        signoff("Accounting & Close")
+        signoff("Financial Reporting")
 
     # FP&A
     with st.container():
@@ -270,6 +290,7 @@ if st.session_state.ran:
             st.markdown(clean(fpa["variance_expl"]))
         with st.expander("📄 FP&A — variance vs budget"):
             st.markdown(clean(fpa["budget_expl"]))
+        signoff("FP&A")
 
     # Strategic Finance
     with st.container():
@@ -282,6 +303,7 @@ if st.session_state.ran:
         c[3].metric("Magic number", f"{m['magic_number']:.2f}", "> 0.75 is good", delta_color="off")
         with st.expander("📄 Strategic Finance's full analysis"):
             st.markdown(clean(strat["narrative"]))
+        signoff("Strategic Finance")
 
     # Internal Controls
     with st.container():
@@ -297,6 +319,7 @@ if st.session_state.ran:
             for ck in ctrls["checks"]:
                 mark = "✅" if ck["status"] == "PASS" else "⚠️"
                 st.markdown(f"{mark} **{ck['name']}** — {clean(ck['detail'])}")
+        signoff("Internal Controls")
 
     # Audit
     with st.container():
@@ -308,16 +331,33 @@ if st.session_state.ran:
             for fnd in aud["findings"]:
                 mark = "✅" if fnd["ok"] else "⚠️"
                 st.markdown(f"{mark} **{fnd['proc']}** — {clean(fnd['detail'])}")
+        signoff("Audit")
 
     st.divider()
 
     # --------------------------------------------------------------------
     # CFO consolidation + human gate.
     # --------------------------------------------------------------------
-    st.markdown("### 2 · The CFO consolidates")
-    st.success("✅ Cross-checks passed — the agents agree on the shared numbers (operating income, "
-               "burn, revenue/run-rate, AR, and Reporting's net income & cash tie to the others). "
-               "The pipeline is internally consistent.")
+    st.markdown("### 2 · First line — each function signed off by its domain expert")
+    st.markdown("<span class='small'>Maker-checker, the way finance actually works: the agent does "
+                "the work, and the person with real depth in that area validates and signs. A "
+                "generalist CFO can't competently approve every operational detail — so each "
+                "function is owned by its expert. (Replayed sign-offs; in production these are "
+                "different people.)</span>", unsafe_allow_html=True)
+    FIRST_LINE = ["Controller", "Accounting & Close", "Financial Reporting", "Treasury",
+                  "Accounts Receivable", "Accounts Payable", "Tax", "FP&A", "Strategic Finance",
+                  "Internal Controls", "Audit"]
+    fl_rows = []
+    for fn in FIRST_LINE:
+        r = A.get(fn, {}).get("review")
+        if r:
+            fl_rows.append({"Function": fn, "Signed off by (domain expert)": r["reviewer"],
+                            "Status": "✓ Approved" if r["decision"] == "approved" else "✗ Rejected"})
+    st.table(fl_rows)
+    n_ok = sum(1 for r in fl_rows if r["Status"].startswith("✓"))
+    st.success(f"✅ First line complete — {n_ok}/{len(fl_rows)} functions signed off by their domain "
+               "experts. Cross-checks also passed: the agents agree on the shared numbers "
+               "(operating income, burn, revenue/run-rate, AR, and Reporting's net income & cash).")
 
     escalations = []
     for name in TOP_LEVEL:
@@ -329,11 +369,13 @@ if st.session_state.ran:
         st.markdown(f"{sev_badge(sev)}&nbsp; {msg}", unsafe_allow_html=True)
 
     st.divider()
-    st.markdown("### 3 · 🧑‍⚖️ Human-in-the-loop — your call")
+    st.markdown("### 3 · 🧑‍⚖️ CFO final sign-off — your call")
     if not st.session_state.approved:
-        st.warning("The CFO agent **stops here** and waits for a human to approve before the board "
-                   "report is released. **You are the human.**")
-        if st.button("✅ Approve as CFO → release the board pack", type="primary"):
+        st.warning("First line is complete — all functions are signed off by their domain experts. "
+                   "The CFO now gives the **final consolidated sign-off** on the board pack and the "
+                   "material items — *not* a re-review of every detail (that's what the experts are "
+                   "for). **You are the CFO.**")
+        if st.button("✅ Final sign-off as CFO → release the board pack", type="primary"):
             st.session_state.approved = True
             st.rerun()
     else:

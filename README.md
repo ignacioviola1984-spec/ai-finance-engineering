@@ -37,17 +37,21 @@ FP&A, Strategic Finance, Internal Controls, and an **independent Audit** — tha
 communicate through a shared state book (`CFOContext`), coordinated by a CFO
 orchestrator. It runs the whole month-end loop — **record → close → report →
 analyze → control → audit** — reconciles the agents' numbers with deterministic
-cross-checks, consolidates escalations by severity without double-counting, and
-asks for a single human sign-off before fixing the board pack. Two of the agents
-are themselves sub-orchestrators (Administration, Accounting & Reporting), giving
-a real two-level org. The books reconcile, the three financial statements
+cross-checks and consolidates escalations by severity without double-counting.
+Governance is **two-tier (maker-checker), the way finance actually works**: each
+function is signed off by its own domain expert (the Tax Manager signs tax, the
+Treasurer signs treasury, …) as the first line, and the CFO gives a single
+**final** consolidated sign-off — not a pseudo-review of every detail a generalist
+can't own. Two of the agents are themselves sub-orchestrators (Administration,
+Accounting & Reporting), giving a real two-level org. The books reconcile, the three financial statements
 articulate, and the Audit agent re-derives the figures independently and issues
 an opinion. Details: [`cfo-office/README.md`](cfo-office/README.md).
 
 **Stack:** Python, Anthropic API, shared-state multi-agent coordination, two-level
 orchestration, record-to-report (reconciliations + articulating financial
 statements), budget-vs-actual variance, internal controls, independent audit,
-cross-agent reconciliation, audit trail, human-in-the-loop controls.
+cross-agent reconciliation, audit trail, **maker-checker review per function +
+final CFO sign-off**.
 
 > **Could this run in production, or is it a vision?** An honest, CFO-grade
 > assessment — what's already production-grade, where the real gap is, and how it
