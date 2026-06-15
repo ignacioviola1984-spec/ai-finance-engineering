@@ -3,3 +3,9 @@ __pycache__/
 *.pyc
 audit_log.jsonl
 cfo_state.json
+
+# Real LendingClub data (large, ~1.6GB+ each) — never commit; the seeded samples
+# and public_filings.csv stay versioned, the real Kaggle files do not.
+lendingclub-data/accepted_2007_to_2018Q4.csv
+lendingclub-data/rejected_2007_to_2018Q4.csv
+lendingclub-data/*.gz
