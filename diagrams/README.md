@@ -16,3 +16,6 @@ file to view).
    (cross-lingual retrieval), and how it was diagnosed and resolved. (Phase 4)
 6. **`06_deploy_workflow.svg`** — Ship & deploy: packaging the projects into a
    web app, deploying for a public URL, and recording demo videos. (Phase 6)
+7. **`07_operating_model_hitl_gates.svg`** — The staged operating model with
+   two-tier HITL: the 8-stage close, each stage with its deterministic control
+   and domain-expert sign-off, then the CFO final consolidated gate. (Phase 8.1)

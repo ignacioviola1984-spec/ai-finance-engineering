@@ -1,0 +1,106 @@
+<svg viewBox="0 0 860 748" xmlns="http://www.w3.org/2000/svg" role="img" font-family="ui-sans-serif, system-ui, sans-serif">
+  <title>CFO AI Office — operating model with two-tier HITL gates</title>
+  <desc>The month-end close runs as eight sequential stages. Each stage is an agent (the maker), an optional deterministic control in code, and a domain-expert sign-off (the human checker). After all eight stages pass, the CFO gives a final consolidated sign-off, then the board pack is released. A control failure blocks immediately; a sign-off rejection reworks and then blocks the whole close.</desc>
+
+  <style>
+    .lbl{fill:var(--text-primary,#1a1a1a)} .sub{fill:var(--text-secondary,#6b6b6b);font-size:11.5px}
+    .ttl{font-size:13px;font-weight:700}
+    .code{fill:var(--bg-secondary,#eef1f0);stroke:var(--text-secondary,#6b6b6b);stroke-width:1.6}
+    .agent{fill:var(--bg-secondary,#f0ece3);stroke:var(--accent,#cc785c);stroke-width:2}
+    .human{fill:var(--bg-secondary,#f4f3ee);stroke:var(--text-primary,#1a1a1a);stroke-width:2.5}
+    .out{fill:var(--bg-secondary,#f0ece3);stroke:var(--accent,#cc785c);stroke-width:2}
+    .flow{stroke:var(--text-secondary,#6b6b6b);stroke-width:1.8;fill:none}
+    .note{fill:var(--text-secondary,#8a8a8a);font-size:10.5px;font-style:italic}
+  </style>
+
+  <text x="30" y="28" class="lbl ttl" font-size="16">CFO AI Office — operating model with HITL gates  ·  close 2026-05</text>
+  <text x="30" y="46" class="sub">8 stages, end to end · each = agent (maker) + deterministic control (code) + domain-expert sign-off · then the CFO final gate</text>
+
+  <text x="175" y="70" text-anchor="middle" class="sub">Agents — makers</text>
+  <text x="421" y="70" text-anchor="middle" class="sub">Code control</text>
+  <text x="672" y="70" text-anchor="middle" class="sub">Human sign-off (HITL)</text>
+
+  <rect x="30" y="84" width="290" height="44" rx="9" class="agent"/>
+  <text x="175" y="111" text-anchor="middle" class="lbl ttl">1 · Controllership review</text>
+  <text x="421" y="111" text-anchor="middle" class="note">— no code gate —</text>
+  <rect x="522" y="91" width="300" height="30" rx="8" class="human"/>
+  <text x="672" y="111" text-anchor="middle" class="sub">Accounting Manager</text>
+
+  <rect x="30" y="142" width="290" height="44" rx="9" class="agent"/>
+  <text x="175" y="169" text-anchor="middle" class="lbl ttl">2 · Treasury &amp; liquidity</text>
+  <text x="421" y="169" text-anchor="middle" class="note">— no code gate —</text>
+  <rect x="522" y="149" width="300" height="30" rx="8" class="human"/>
+  <text x="672" y="169" text-anchor="middle" class="sub">Treasurer</text>
+
+  <rect x="30" y="200" width="290" height="44" rx="9" class="agent"/>
+  <text x="175" y="227" text-anchor="middle" class="lbl ttl">3 · Working capital &amp; tax</text>
+  <text x="421" y="227" text-anchor="middle" class="note">— no code gate —</text>
+  <rect x="522" y="207" width="300" height="30" rx="8" class="human"/>
+  <text x="672" y="227" text-anchor="middle" class="sub">AR / AP / Tax Managers</text>
+
+  <rect x="30" y="258" width="290" height="44" rx="9" class="agent"/>
+  <text x="175" y="285" text-anchor="middle" class="lbl ttl">4 · Close &amp; financial statements</text>
+  <rect x="336" y="265" width="170" height="30" rx="8" class="code"/>
+  <text x="421" y="285" text-anchor="middle" class="sub">Subledgers tie &amp; foot</text>
+  <rect x="522" y="265" width="300" height="30" rx="8" class="human"/>
+  <text x="672" y="285" text-anchor="middle" class="sub">Accounting + Reporting Managers</text>
+
+  <rect x="30" y="316" width="290" height="44" rx="9" class="agent"/>
+  <text x="175" y="343" text-anchor="middle" class="lbl ttl">5 · Planning &amp; analysis (FP&amp;A)</text>
+  <text x="421" y="343" text-anchor="middle" class="note">— no code gate —</text>
+  <rect x="522" y="323" width="300" height="30" rx="8" class="human"/>
+  <text x="672" y="343" text-anchor="middle" class="sub">FP&amp;A Director</text>
+
+  <rect x="30" y="374" width="290" height="44" rx="9" class="agent"/>
+  <text x="175" y="401" text-anchor="middle" class="lbl ttl">6 · Strategic finance</text>
+  <text x="421" y="401" text-anchor="middle" class="note">— no code gate —</text>
+  <rect x="522" y="381" width="300" height="30" rx="8" class="human"/>
+  <text x="672" y="401" text-anchor="middle" class="sub">VP Finance</text>
+
+  <rect x="30" y="432" width="290" height="44" rx="9" class="agent"/>
+  <text x="175" y="459" text-anchor="middle" class="lbl ttl">7 · Internal controls</text>
+  <rect x="336" y="439" width="170" height="30" rx="8" class="code"/>
+  <text x="421" y="459" text-anchor="middle" class="sub">Zero integrity failures</text>
+  <rect x="522" y="439" width="300" height="30" rx="8" class="human"/>
+  <text x="672" y="459" text-anchor="middle" class="sub">Internal Controls Manager</text>
+
+  <rect x="30" y="490" width="290" height="44" rx="9" class="agent"/>
+  <text x="175" y="517" text-anchor="middle" class="lbl ttl">8 · Independent audit</text>
+  <rect x="336" y="497" width="170" height="30" rx="8" class="code"/>
+  <text x="421" y="517" text-anchor="middle" class="sub">Opinion not adverse</text>
+  <rect x="522" y="497" width="300" height="30" rx="8" class="human"/>
+  <text x="672" y="517" text-anchor="middle" class="sub">Internal Audit Lead</text>
+
+  <path class="flow" d="M175 128 L175 142" marker-end="url(#a)"/>
+  <path class="flow" d="M175 186 L175 200" marker-end="url(#a)"/>
+  <path class="flow" d="M175 244 L175 258" marker-end="url(#a)"/>
+  <path class="flow" d="M175 302 L175 316" marker-end="url(#a)"/>
+  <path class="flow" d="M175 360 L175 374" marker-end="url(#a)"/>
+  <path class="flow" d="M175 418 L175 432" marker-end="url(#a)"/>
+  <path class="flow" d="M175 476 L175 490" marker-end="url(#a)"/>
+  <path class="flow" d="M175 534 L175 550" marker-end="url(#a)"/>
+
+  <rect x="120" y="552" width="620" height="50" rx="10" class="human"/>
+  <text x="430" y="576" text-anchor="middle" class="lbl ttl">CFO · final consolidated sign-off</text>
+  <text x="430" y="593" text-anchor="middle" class="sub">after every first-line sign-off · material &amp; cross-cutting items only</text>
+
+  <path class="flow" d="M430 602 L430 612" marker-end="url(#a)"/>
+  <rect x="120" y="614" width="620" height="44" rx="10" class="out"/>
+  <text x="430" y="641" text-anchor="middle" class="lbl ttl">Board pack &amp; recommended actions</text>
+
+  <rect x="30" y="672" width="14" height="14" rx="3" class="agent"/>
+  <text x="50" y="683" class="sub">Agent (maker)</text>
+  <rect x="210" y="672" width="14" height="14" rx="3" class="code"/>
+  <text x="230" y="683" class="sub">Deterministic control (code)</text>
+  <rect x="470" y="672" width="14" height="14" rx="3" class="human"/>
+  <text x="490" y="683" class="sub">Human sign-off (HITL)</text>
+
+  <text x="30" y="712" class="note">Principle: numbers are computed in code (finance_core); the agents reason and draft; the controls and the domain experts decide if it advances.</text>
+  <text x="30" y="728" class="note">On fail: a control failure blocks immediately; a sign-off rejection reworks (capped), then blocks the whole close. Every stage and sign-off is logged.</text>
+
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0 0 L8 4 L0 8 z" fill="var(--text-secondary,#6b6b6b)"/>
+    </marker>
+  </defs>
+</svg>
