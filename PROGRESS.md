@@ -246,8 +246,11 @@ Bitacora de avance, fase por fase.
   Reporting (3 estados) [HECHO], Audit [HECHO]; faltan (profundidad, no pilares):
   Finance Compliance regulatorio, Payroll/costo de gente, AgentOps (monitoreo +
   CI), Finance Data (capa unificada).
-- Demo publica (cfo-demo): por ahora muestra 4 agentes; falta sumar la pata de
-  Administration al snapshot/app y re-deployar (pendiente, opcional).
+- Demo publica (cfo-demo): ACTUALIZADO a los 8 agentes (Fase 7.6). Snapshot
+  regenerado de una corrida real completa; app.py renderiza toda la jerarquia +
+  los 3 estados financieros + control register + opinion de auditoria. Caja del
+  demo ahora 7,50M (coincide con el repo). Probado headless con Streamlit AppTest.
+  Falta SOLO el re-deploy en Streamlit Cloud (paso manual de Nacho).
 
 ## Siguiente
 
