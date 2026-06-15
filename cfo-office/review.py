@@ -21,8 +21,7 @@ import os
 import sys
 
 # Each function -> the domain expert who must sign off (deep knowledge in the area).
-# SaaS month-end close (Lumen) track.
-SAAS_REVIEWERS = {
+REVIEWERS = {
     "Controller": "Accounting Manager",
     "Treasury": "Treasurer",
     "Accounts Receivable": "Collections / AR Manager",
@@ -36,28 +35,8 @@ SAAS_REVIEWERS = {
     "Audit": "Internal Audit Lead",
 }
 
-# Credit / lending track (LendingClub). Each function signed off by its domain
-# expert too; the CFO Narrative + final gate sits on top (second tier).
-CREDIT_REVIEWERS = {
-    "Source Ingestion": "Data Engineering Lead",
-    "Data Quality": "Data Governance Lead",
-    "Source Traceability": "Data Governance Lead",
-    "Loan Portfolio": "Head of Portfolio Analytics",
-    "Credit Risk": "Chief Credit Officer",
-    "Revenue & Unit Economics": "Head of Revenue Finance",
-    "Public Benchmark": "Investor Relations / Technical Accounting",
-    "Variance & Explainability": "Controller",
-    "Model Risk": "Model Risk / Internal Audit Lead",
-}
-
-# review() can look up any function across tracks; the per-track first-line lists
-# stay separate so one track's CFO gate never waits on the other's sign-offs.
-REVIEWERS = {**SAAS_REVIEWERS, **CREDIT_REVIEWERS}
-
-# The SaaS functions that need a first-line domain-expert sign-off before the CFO
-# gate (default for first_line_status — unchanged by the credit track).
-FUNCTIONS = list(SAAS_REVIEWERS.keys())
-CREDIT_FUNCTIONS = list(CREDIT_REVIEWERS.keys())
+# The functions that need a first-line domain-expert sign-off before the CFO gate.
+FUNCTIONS = list(REVIEWERS.keys())
 
 
 def _auto():

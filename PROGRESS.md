@@ -293,46 +293,6 @@ Bitacora de avance, fase por fase.
 - Verificado: corrida staged auto = 8/8 PASS + CFO 11/11, 68 eventos de audit;
   test de control-fail -> etapa "blocked" (rework y luego block). Evals 22/22.
 
-### Fase 9 — Credit track (LendingClub, data real)  [EN CURSO]
-- Objetivo (Nacho): probar el operating model con data real de una fintech de
-  credito (LendingClub). Nacho sube el CSV; se construyen los agentes primero.
-- Fundacion de datos: lendingclub-data/ (sample con el SCHEMA REAL de LC +
-  generador seeded + public_filings.csv placeholders + README para soltar el CSV
-  real). orchestration/credit_core.py: motor deterministico (ingestion, data
-  quality/schema, provenance, portfolio, credit risk/losses con PD por grade +
-  LGD + expected loss, revenue/unit economics, benchmark vs filings, model-risk).
-- 10 agentes (capa previa + analytics + benchmark + narrativa): 9 makers
-  generados por workflow (cfo-office/credit/: ingestion, data quality,
-  traceability, loan portfolio, credit risk, revenue, public benchmark, variance,
-  model risk) + CFO Narrative en el orquestador. Cada uno narra sobre credit_core,
-  nunca inventa una cifra; firma su experto de dominio (CREDIT_REVIEWERS).
-- credit_stages.py (9 etapas con control determinístico + HITL, control-fail
-  bloquea ya) + credit_orchestrator.py (cross-checks analytics-vs-benchmark, gate
-  final del CFO, narrativa consolidada).
-- Verificado keyless (narracion stubbeada): 9/9 etapas PASS + 9/9 firmas + 4
-  escalamientos + cross-checks atan + 53 eventos de audit; block-path: una falla
-  de data-quality bloquea en la etapa 2 ("bad data does not proceed"). SaaS intacto
-  (review.py desacoplado: FUNCTIONS=11, evals 33/33).
-- Review adversarial (22 agentes): 18 hallazgos, 15 confirmados, LOS 15 arreglados
-  y re-verificados. El grave (HIGH): los estados reales "Does not meet the credit
-  policy. Status:..." se misclasificaban -> habria corrompido charge-off/PD/EL al
-  cargar el CSV real; ahora se normaliza el prefijo. Otros: escalamientos
-  independientes, el LLM ya no emite veredicto de riesgo propio, proxies
-  etiquetados, cross-checks de integridad reales, gate muerto removido.
-- STREAMING: credit_core lee el archivo en UNA pasada (csv.DictReader lazy),
-  acumulando solo agregados -> memoria O(buckets). Verificado: 1.2M filas en 81 MB
-  pico (vs varios GB si se cargara como lista); numeros del sample IDENTICOS;
-  API publica sin cambios (agentes/etapas intactos). Perilla opcional LC_MAX_ROWS.
-- CORRIDA REAL (Nacho subio el CSV de Kaggle): el modelo corrio de punta a punta
-  sobre el book REAL completo (2.260.701 prestamos, $34 bn originations) en ~2 min.
-  9/9 etapas + 9/9 firmas + gate CFO + board pack real. PD por grade monotona
-  6.04%(A)->49.67%(G). Benchmark vs 10-K REAL (SEC, 8-K Ex 99.1): originations del
-  dataset -26/-27% vs reportado los 3 anios (subset estable ~73%, explicado por el
-  agente de Variance). DQ: 2 pass/4 warn/0 fail (las 33 filas-basura de LC, no
-  bloquean). Bug de data real cazado y arreglado (None vintage por fechas malas).
-  public_filings.csv con cifras reales citadas. Artefacto: CREDIT-CASE-STUDY.md.
-  Pendiente opcional: diagrama del credit track.
-
 ## Siguiente
 
 ### Fase 6.2 — Deploy + demo
