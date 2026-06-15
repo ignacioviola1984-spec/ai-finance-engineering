@@ -6,6 +6,9 @@ model with reliability controls, and a multi-agent CFO office that runs the
 close over a shared, auditable state. Built by a finance operator with 17
 years of experience, now building the systems.
 
+> **See it run:** [`CASE-STUDY.md`](CASE-STUDY.md) walks one real month-end close
+> end to end (real, code-computed output). **Work with me:** [`OFFERING.md`](OFFERING.md).
+
 ## Projects
 
 ### Finance MCP Connector (`finance-mcp/`)
@@ -117,3 +120,13 @@ at the critical points.
 17 years in senior finance, now building AI systems for finance operations.
 These projects run on synthetic data modeled on a multi-entity SaaS; the
 architecture and accounting logic are built to point at production data.
+
+Available for **finance-transformation roles and advisory engagements** —
+see [`OFFERING.md`](OFFERING.md).
+
+## License
+
+Source-available under the **PolyForm Noncommercial License 1.0.0** (see
+[`LICENSE`](LICENSE)): you may read, run, study and evaluate the code for any
+**noncommercial** purpose. **Commercial use and production implementations require
+a separate license** — get in touch.
