@@ -33,6 +33,12 @@ DATA = load_snapshot()
 A = DATA["agents"]
 PERIOD = "May 2026"
 
+# Top-level functions reporting to the CFO (Administration and Accounting &
+# Reporting each consolidate their own sub-agents, so their escalations are
+# already rolled up — no double-counting).
+TOP_LEVEL = ["Controller", "Treasury", "Administration", "Accounting & Reporting",
+             "FP&A", "Strategic Finance", "Internal Controls", "Audit"]
+
 
 def money(x):
     return f"${x:,.0f}"
@@ -55,6 +61,11 @@ def sev_badge(sev):
             f"border-radius:6px;font-size:0.72rem;font-weight:700'>{sev}</span>")
 
 
+def stmt_table(rows):
+    """Render a financial statement as a 2-column table (line, amount)."""
+    st.table([{"": label, " ": val} for label, val in rows])
+
+
 # --------------------------------------------------------------------------
 # Light styling.
 # --------------------------------------------------------------------------
@@ -63,10 +74,12 @@ st.markdown("""
 <style>
 .small { color:#6b7280; font-size:0.9rem; }
 .card { background:rgba(127,127,127,0.06); border:1px solid rgba(127,127,127,0.18);
-        border-radius:12px; padding:16px 18px; margin-bottom:8px; }
-.role { font-weight:700; font-size:1.02rem; }
+        border-radius:12px; padding:14px 16px; margin-bottom:8px; }
+.role { font-weight:700; font-size:0.98rem; }
 .boardpack { background:rgba(27,42,74,0.06); border-left:4px solid #1B2A4A;
              border-radius:8px; padding:18px 22px; }
+.opinion { background:rgba(15,110,86,0.10); border-left:4px solid #0F6E56;
+           border-radius:8px; padding:12px 16px; font-weight:600; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -77,39 +90,49 @@ st.markdown("""
 
 st.title("📊 CFO AI Office")
 st.markdown(
-    "#### An AI finance team that runs a company's month-end close — and keeps a human in control."
+    "#### An AI finance team that runs a company's month-end close end to end — and keeps a human in control."
 )
 st.markdown(
-    "<span class='small'>Four specialist agents (Controller, Treasury, FP&amp;A, Strategic Finance) "
-    "report to a <b>CFO agent</b> that reconciles their numbers, flags the risks, asks for one human "
-    "approval, and writes the board report. Running on a synthetic SaaS company, <b>Lumen Inc.</b>, "
-    f"closing <b>{PERIOD}</b>.</span>", unsafe_allow_html=True)
+    "<span class='small'>Eight specialist agents — across accounting, treasury, working capital, "
+    "planning, controls and audit — report to a <b>CFO agent</b> that reconciles their numbers, "
+    "flags the risks, asks for one human approval, and writes the board report. Running on a "
+    f"synthetic SaaS company, <b>Lumen Inc.</b>, closing <b>{PERIOD}</b>.</span>",
+    unsafe_allow_html=True)
 
 with st.expander("ℹ️  What am I looking at? (30-second version)"):
     st.markdown(
         "- This is a **working multi-agent AI system for corporate finance** — not slides, real software.\n"
-        "- Every **number** you see is computed by code (deterministic, auditable). The AI agents **read the "
+        "- It runs the whole loop: **record → close → report → analyze → control → audit**.\n"
+        "- Every **number** is computed by code (deterministic, auditable). The AI agents **read the "
         "numbers, reason, and write the commentary** — they never invent a figure. That's the core design rule.\n"
+        "- The books **reconcile**, the three financial statements **articulate**, and an **independent "
+        "audit agent** re-derives the figures and issues an opinion.\n"
         "- A **human approves** before anything reaches the board (you'll do that below).\n"
-        "- This page replays a **real saved run** so it's instant and free to explore. "
-        "The widgets recompute live from those numbers.\n"
+        "- This page replays a **real saved run** so it's instant and free. The widgets recompute live.\n"
         "- Built by **Ignacio Viola** — 17 years in senior finance, now building the AI systems. "
-        "Full source code on [GitHub](https://github.com/ignacioviola1984-spec/ai-finance-engineering)."
+        "Full source on [GitHub](https://github.com/ignacioviola1984-spec/ai-finance-engineering)."
     )
 
-# The team.
-st.markdown("##### The team")
-team = [
-    ("🧾 Controller", "Closes the books: P&L consistency, margins, receivables, risk flags."),
-    ("💵 Treasury", "Liquidity: cash, monthly burn, and runway."),
-    ("📈 FP&A", "Forecast + variances (vs last month and vs budget)."),
-    ("🎯 Strategic Finance", "Growth quality & capital efficiency; path to breakeven."),
-    ("👔 CFO", "Reconciles all four, consolidates risks, one human gate, board report."),
+# The team / org.
+st.markdown("##### The team — a two-level finance org")
+team_rows = [
+    [("🧾 Controller", "Close review: P&L consistency, margins, risk flags."),
+     ("💵 Treasury", "Cash, burn, runway, 13-week cash forecast."),
+     ("🗂️ Administration", "Supervises Accounts Receivable · Accounts Payable · Tax."),
+     ("📒 Accounting & Reporting", "Supervises the Close (reconciliations) and the 3 financial statements.")],
+    [("📈 FP&A", "Forecast + variances (vs last month and vs budget)."),
+     ("🎯 Strategic Finance", "Growth quality & capital efficiency; path to breakeven."),
+     ("🛡️ Internal Controls", "Assurance: trial balance, FX, cutoff, authorizations."),
+     ("🔎 Audit", "Independent third line: re-derives the figures, issues an opinion.")],
 ]
-cols = st.columns(5)
-for c, (role, desc) in zip(cols, team):
-    c.markdown(f"<div class='card'><div class='role'>{role}</div>"
-               f"<div class='small'>{desc}</div></div>", unsafe_allow_html=True)
+for row in team_rows:
+    cols = st.columns(4)
+    for c, (role, desc) in zip(cols, row):
+        c.markdown(f"<div class='card'><div class='role'>{role}</div>"
+                   f"<div class='small'>{desc}</div></div>", unsafe_allow_html=True)
+st.markdown("<div class='card' style='text-align:center'><span class='role'>👔 CFO</span> "
+            "<span class='small'>— reconciles all eight, consolidates risks, one human gate, "
+            "writes the board report.</span></div>", unsafe_allow_html=True)
 
 st.divider()
 
@@ -132,7 +155,11 @@ if not st.session_state.ran:
         st.rerun()
 
 if st.session_state.ran:
-    ctrl, trez, fpa, strat, cfo = A["Controller"], A["Treasury"], A["FP&A"], A["Strategic Finance"], A["CFO"]
+    ctrl, trez = A["Controller"], A["Treasury"]
+    ar, ap, tax = A["Accounts Receivable"], A["Accounts Payable"], A["Tax"]
+    close, rep = A["Accounting & Close"], A["Financial Reporting"]
+    fpa, strat = A["FP&A"], A["Strategic Finance"]
+    ctrls, aud, cfo = A["Internal Controls"], A["Audit"], A["CFO"]
 
     st.markdown("### 1 · The agents report")
 
@@ -151,13 +178,83 @@ if st.session_state.ran:
     # Treasury
     with st.container():
         st.markdown("#### 💵 Treasury — liquidity")
+        f13 = trez.get("forecast", {})
         c = st.columns(4)
         c[0].metric("Cash", money(trez["cash"]))
         c[1].metric("Monthly burn", money(trez["burn"]))
         c[2].metric("Runway", f"{trez['runway']:.1f} months")
-        c[3].metric("Threshold", "12 months", "comfort line", delta_color="off")
+        if f13:
+            c[3].metric("13-week ending cash", money(f13["ending_cash"]),
+                        "stays positive" if not f13.get("week_cash_negative") else "goes negative",
+                        delta_color="off")
         with st.expander("📄 Treasury's full analysis"):
             st.markdown(clean(trez["narrative"]))
+
+    # Administration → AR / AP / Tax
+    with st.container():
+        st.markdown("#### 🗂️ Administration — working capital & tax (AR · AP · Tax)")
+        c = st.columns(4)
+        c[0].metric("AR overdue", money(ar["metrics"]["overdue"]),
+                    f"{ar['metrics']['overdue_pct']:.0f}% of AR · DSO {ar['metrics']['dso']:.0f}d", delta_color="off")
+        c[1].metric("AP overdue", money(ap["metrics"]["overdue"]),
+                    f"DPO {ap['metrics']['dpo']:.0f}d", delta_color="off")
+        c[2].metric("Tax overdue", money(tax["metrics"]["overdue"]),
+                    f"of {money(tax['metrics']['pending_total'])} pending", delta_color="off")
+        c[3].metric("Due within 30 days", money(ap["metrics"]["upcoming_30d"] + tax["metrics"]["upcoming_30d"]),
+                    "AP + tax", delta_color="off")
+        with st.expander("📄 Administration — Accounts Receivable, Payable and Tax"):
+            st.markdown("**Accounts Receivable** — " + clean(ar["narrative"]))
+            st.markdown("**Accounts Payable** — " + clean(ap["narrative"]))
+            st.markdown("**Tax** — " + clean(tax["narrative"]))
+
+    # Accounting & Reporting → close + the three financial statements
+    with st.container():
+        st.markdown("#### 📒 Accounting & Reporting — the close & the financial statements")
+        recs = close["reconciliations"]
+        if recs["all_reconciled"]:
+            st.markdown("<div class='opinion'>✅ Close is clean — AR & AP subledgers tie to the general "
+                        "ledger, and retained earnings roll forward by net income (the statements "
+                        "articulate).</div>", unsafe_allow_html=True)
+        inc, bs, cf = rep["income_statement"], rep["balance_sheet"], rep["cash_flow"]
+        s1, s2, s3 = st.columns(3)
+        with s1:
+            st.markdown("**Income statement**")
+            stmt_table([
+                ("Revenue", money(inc["revenue"])),
+                ("Cost of revenue", money(-inc["cogs"])),
+                (f"Gross profit ({inc['gross_margin_pct']:.0f}%)", money(inc["gross"])),
+                ("Sales & marketing", money(-inc["sm"])),
+                ("R&D", money(-inc["rd"])),
+                ("G&A", money(-inc["ga"])),
+                (f"Net income ({inc['net_margin_pct']:.0f}%)", money(inc["net_income"])),
+            ])
+        with s2:
+            st.markdown("**Balance sheet**")
+            stmt_table([
+                ("Cash", money(bs["assets"]["cash"])),
+                ("Accounts receivable", money(bs["assets"]["accounts_receivable"])),
+                ("Fixed assets", money(bs["assets"]["fixed_assets"])),
+                ("Total assets", money(bs["total_assets"])),
+                ("Liabilities", money(bs["total_liabilities"])),
+                ("Equity", money(bs["total_equity"])),
+                ("Check (A−L−E)", money(bs["balance_check"])),
+            ])
+        with s3:
+            st.markdown("**Cash flow (indirect)**")
+            stmt_table([
+                ("Net income", money(cf["net_income"])),
+                ("− Increase in AR", money(-cf["d_ar"])),
+                ("+ Increase in AP", money(cf["d_ap"])),
+                ("+ Increase in deferred", money(cf["d_deferred"])),
+                ("Cash from operations", money(cf["cfo"])),
+                ("Beginning cash", money(cf["cash_begin"])),
+                ("Ending cash", money(cf["cash_end"])),
+            ])
+        st.caption("The three statements articulate: net income flows into equity, and the cash-flow "
+                   "statement foots to the actual change in cash "
+                   f"({money(cf['net_change'])} = {money(cf['actual_change'])}).")
+        with st.expander("📄 Accounting & Reporting — full commentary"):
+            st.markdown(clean(A["Accounting & Reporting"]["narrative"]))
 
     # FP&A
     with st.container():
@@ -186,16 +283,47 @@ if st.session_state.ran:
         with st.expander("📄 Strategic Finance's full analysis"):
             st.markdown(clean(strat["narrative"]))
 
+    # Internal Controls
+    with st.container():
+        st.markdown("#### 🛡️ Internal Controls — assurance")
+        summ = ctrls["summary"]
+        c = st.columns(4)
+        c[0].metric("Controls passed", f"{summ['n_pass']} / {summ['n_pass']+summ['n_fail']+summ['n_exception']}")
+        c[1].metric("Integrity failures", str(summ["n_fail"]))
+        c[2].metric("Books balanced", "Yes" if summ["books_balanced"] else "No")
+        c[3].metric("Authorization review", str(summ["approval_exceptions"]),
+                    f"payments ≥ $25k ({money(summ['approval_exceptions_total'])})", delta_color="off")
+        with st.expander("📄 Control register"):
+            for ck in ctrls["checks"]:
+                mark = "✅" if ck["status"] == "PASS" else "⚠️"
+                st.markdown(f"{mark} **{ck['name']}** — {clean(ck['detail'])}")
+
+    # Audit
+    with st.container():
+        st.markdown("#### 🔎 Audit — independent assurance (third line)")
+        st.markdown(f"<div class='opinion'>Audit opinion: <b>{aud['opinion'].upper()}</b> — "
+                    f"{aud['n_procedures']} procedures re-performed, {aud['n_exceptions']} exception(s).</div>",
+                    unsafe_allow_html=True)
+        with st.expander("📄 Audit procedures (re-derived from the raw ledger & subledger)"):
+            for fnd in aud["findings"]:
+                mark = "✅" if fnd["ok"] else "⚠️"
+                st.markdown(f"{mark} **{fnd['proc']}** — {clean(fnd['detail'])}")
+
     st.divider()
 
     # --------------------------------------------------------------------
     # CFO consolidation + human gate.
     # --------------------------------------------------------------------
     st.markdown("### 2 · The CFO consolidates")
-    st.success("✅ Cross-check passed — all four agents agree on the shared numbers "
-               "(operating income, burn, revenue/run-rate). The pipeline is internally consistent.")
+    st.success("✅ Cross-checks passed — the agents agree on the shared numbers (operating income, "
+               "burn, revenue/run-rate, AR, and Reporting's net income & cash tie to the others). "
+               "The pipeline is internally consistent.")
 
-    escalations = (ctrl["escalations"] + trez["escalations"] + fpa["escalations"] + strat["escalations"])
+    escalations = []
+    for name in TOP_LEVEL:
+        escalations += A.get(name, {}).get("escalations", [])
+    order = {"CRITICAL": 0, "HIGH": 1}
+    escalations = sorted(escalations, key=lambda e: order.get(e[0], 9))
     st.markdown(f"**{len(escalations)} risk flags raised** (each owned by one agent, no double-counting):")
     for sev, msg in escalations:
         st.markdown(f"{sev_badge(sev)}&nbsp; {msg}", unsafe_allow_html=True)
@@ -213,7 +341,7 @@ if st.session_state.ran:
         st.markdown(f"<div class='boardpack'>{clean(cfo['board_pack'])}</div>", unsafe_allow_html=True)
         st.markdown("#### Recommended actions")
         st.markdown(clean(cfo["actions"]))
-        st.caption("Generated by the CFO agent from the four agents' inputs — every figure traces "
+        st.caption("Generated by the CFO agent from the eight agents' inputs — every figure traces "
                    "back to code-computed numbers.")
 
 
