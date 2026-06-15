@@ -7,6 +7,14 @@ source of data: ../lendingclub-data. The engine looks for the real Kaggle files
 first and falls back to the seeded sample, so it runs today and points at real
 data the moment the real CSVs are dropped in.
 
+SCALE: the real accepted_2007_to_2018Q4.csv is ~1.6 GB / ~2.2M rows. The engine
+reads it in a SINGLE STREAMING PASS (csv.DictReader is a lazy iterator — we never
+materialize the file into a list), accumulating only aggregates keyed by grade,
+term, vintage and status. Memory is O(buckets), not O(rows), so the full real loan
+book runs on a laptop. The one O(rows) structure is the set of loan ids used for
+duplicate detection (~200 MB at full scale). Set env LC_MAX_ROWS to cap the scan
+for fast iteration (off by default — the real test runs on the full file).
+
 Function families (one per downstream agent):
   ingestion_summary()      -> Source Ingestion Agent
   data_quality()           -> Data Quality & Schema Agent
@@ -40,19 +48,9 @@ _RESOLVED = {"Fully Paid", "Charged Off"}
 _DELINQUENT = {"Late (31-120 days)", "Late (16-30 days)", "Default",
                "In Grace Period", "Charged Off"}
 
-
-def _load_first(names):
-    for n in names:
-        p = os.path.join(DATA, n)
-        if os.path.exists(p):
-            with open(p, newline="", encoding="utf-8") as f:
-                return list(csv.DictReader(f)), n
-    return [], names[-1]
-
-
-_ACC, ACCEPTED_FILE = _load_first(["accepted_2007_to_2018Q4.csv", "accepted_sample.csv"])
-_REJ, REJECTED_FILE = _load_first(["rejected_2007_to_2018Q4.csv", "rejected_sample.csv"])
-_FIL, FILINGS_FILE = _load_first(["public_filings.csv"])
+_KEY_COLS = ["loan_amnt", "int_rate", "grade", "loan_status", "issue_d"]
+_REQUIRED_ACC = ["id", "loan_amnt", "funded_amnt", "term", "int_rate", "grade",
+                 "issue_d", "loan_status", "total_rec_prncp", "total_rec_int", "recoveries"]
 
 
 # --- parsing helpers (tolerant; the real file is large and messy) ----------
@@ -96,78 +94,196 @@ def _status(r):
     return s
 
 
+# --- pick the data files (real first, sample fallback) ---------------------
+
+def _pick(names):
+    for n in names:
+        if os.path.exists(os.path.join(DATA, n)):
+            return os.path.join(DATA, n), n
+    return os.path.join(DATA, names[-1]), names[-1]
+
+
+_ACC_PATH, ACCEPTED_FILE = _pick(["accepted_2007_to_2018Q4.csv", "accepted_sample.csv"])
+_REJ_PATH, REJECTED_FILE = _pick(["rejected_2007_to_2018Q4.csv", "rejected_sample.csv"])
+
+
+def _load(name):
+    p = os.path.join(DATA, name)
+    if not os.path.exists(p):
+        return []
+    with open(p, newline="", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
+_FIL = _load("public_filings.csv")
+FILINGS_FILE = "public_filings.csv" if _FIL else None
+
+
+# --- the single streaming pass: accumulate every aggregate the agents need --
+
+def _new_agg():
+    return {
+        "n": 0, "columns": set(), "capped": False,
+        "sum_funded": 0.0, "sum_funded_rate": 0.0, "sum_int_income": 0.0,
+        "sum_total_pymnt": 0.0, "sum_fees": 0.0,
+        "matured": 0, "charged": 0, "onbook_n": 0, "onbook_outstanding": 0.0,
+        "delinquent": 0, "charged_off_usd": 0.0,
+        "dup": 0, "miss": {c: 0 for c in _KEY_COLS}, "bad_dates": 0,
+        "outliers": 0, "rate_bad": 0,
+        "g_funded": {}, "g_matured": {}, "g_charged": {},
+        "g_co_prncp": {}, "g_recov": {}, "g_onbook_out": {},
+        "t_funded": {}, "by_status": {},
+        "y_funded": {}, "y_received": {}, "y_int_income": {},
+        "y_count": {}, "y_funded_rate": {}, "y_matured": {}, "y_charged": {},
+        "rej_n": 0, "rej_sum": 0.0,
+    }
+
+
+def _scan():
+    a = _new_agg()
+    seen = set()
+    cap = int(os.environ.get("LC_MAX_ROWS", "0") or 0)
+
+    if os.path.exists(_ACC_PATH):
+        with open(_ACC_PATH, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            a["columns"] = set(reader.fieldnames or [])
+            for r in reader:
+                if cap and a["n"] >= cap:
+                    a["capped"] = True
+                    break
+                a["n"] += 1
+                rid = r.get("id")
+                if rid:
+                    if rid in seen:
+                        a["dup"] += 1
+                    else:
+                        seen.add(rid)
+                for c in _KEY_COLS:
+                    if not str(r.get(c, "")).strip():
+                        a["miss"][c] += 1
+                funded = _f(r.get("funded_amnt"))
+                rate = _rate(r.get("int_rate"))
+                amt = _f(r.get("loan_amnt"))
+                if amt <= 0 or amt > 100000:
+                    a["outliers"] += 1
+                if not (0 < rate < 0.5):
+                    a["rate_bad"] += 1
+                g = r.get("grade", "?")
+                term = _term(r.get("term"))
+                y = _year(r.get("issue_d"))
+                if y is None:
+                    a["bad_dates"] += 1
+                st = _status(r) or "?"
+                rec_prncp = _f(r.get("total_rec_prncp"))
+                recov = _f(r.get("recoveries"))
+                rec_int = _f(r.get("total_rec_int"))
+                tot_pymnt = _f(r.get("total_pymnt"))
+
+                a["sum_funded"] += funded
+                a["sum_funded_rate"] += funded * rate
+                a["sum_int_income"] += rec_int
+                a["sum_total_pymnt"] += tot_pymnt
+                a["sum_fees"] += funded * _ORIG_FEE.get(g, 0.04)
+                a["g_funded"][g] = a["g_funded"].get(g, 0.0) + funded
+                a["t_funded"][term] = a["t_funded"].get(term, 0.0) + funded
+                a["by_status"][st] = a["by_status"].get(st, 0) + 1
+                a["y_funded"][y] = a["y_funded"].get(y, 0.0) + funded
+                a["y_received"][y] = a["y_received"].get(y, 0.0) + tot_pymnt
+                a["y_int_income"][y] = a["y_int_income"].get(y, 0.0) + rec_int
+                a["y_count"][y] = a["y_count"].get(y, 0) + 1
+                a["y_funded_rate"][y] = a["y_funded_rate"].get(y, 0.0) + funded * rate
+
+                if st in _RESOLVED:
+                    a["matured"] += 1
+                    a["g_matured"][g] = a["g_matured"].get(g, 0) + 1
+                    a["y_matured"][y] = a["y_matured"].get(y, 0) + 1
+                    if st == "Charged Off":
+                        a["charged"] += 1
+                        a["g_charged"][g] = a["g_charged"].get(g, 0) + 1
+                        a["y_charged"][y] = a["y_charged"].get(y, 0) + 1
+                        a["g_co_prncp"][g] = a["g_co_prncp"].get(g, 0.0) + (funded - rec_prncp)
+                        a["g_recov"][g] = a["g_recov"].get(g, 0.0) + recov
+                        a["charged_off_usd"] += (funded - rec_prncp)
+                else:
+                    a["onbook_n"] += 1
+                    out = max(0.0, funded - rec_prncp)
+                    a["onbook_outstanding"] += out
+                    a["g_onbook_out"][g] = a["g_onbook_out"].get(g, 0.0) + out
+                    if st in _DELINQUENT and st != "Charged Off":
+                        a["delinquent"] += 1
+
+    # Rejected file: stream a count + sum only (it can be very large).
+    if os.path.exists(_REJ_PATH):
+        with open(_REJ_PATH, newline="", encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                if cap and a["rej_n"] >= cap:
+                    break
+                a["rej_n"] += 1
+                a["rej_sum"] += _f(r.get("Amount Requested"))
+    return a
+
+
+_CACHE = None
+
+
+def _agg():
+    """Scan once, cache. The first call that needs the numbers triggers the pass."""
+    global _CACHE
+    if _CACHE is None:
+        _CACHE = _scan()
+    return _CACHE
+
+
 # --- Source Ingestion ------------------------------------------------------
 
 def ingestion_summary():
-    """What was loaded, from which files, and the periods covered."""
-    years = sorted({y for r in _ACC if (y := _year(r.get("issue_d"))) is not None})
-    real = not ACCEPTED_FILE.endswith("_sample.csv")
+    a = _agg()
+    years = sorted(y for y in a["y_funded"] if y is not None)
     return {
         "accepted_file": ACCEPTED_FILE, "rejected_file": REJECTED_FILE,
-        "filings_file": FILINGS_FILE if _FIL else None,
-        "accepted_rows": len(_ACC), "rejected_rows": len(_REJ),
-        "filing_rows": len(_FIL),
-        "vintage_years": years, "is_real_data": real,
+        "filings_file": FILINGS_FILE,
+        "accepted_rows": a["n"], "rejected_rows": a["rej_n"], "filing_rows": len(_FIL),
+        "vintage_years": years, "is_real_data": not ACCEPTED_FILE.endswith("_sample.csv"),
+        "capped": a["capped"],
     }
 
 
 # --- Data Quality & Schema -------------------------------------------------
 
-_REQUIRED_ACC = ["id", "loan_amnt", "funded_amnt", "term", "int_rate", "grade",
-                 "issue_d", "loan_status", "total_rec_prncp", "total_rec_int", "recoveries"]
-
-
 def data_quality():
-    """Schema + integrity checks on the accepted loan book. Each check is PASS or
-    FAIL/WARN with a number behind it, so 'runs on real data' is provable."""
+    a = _agg()
+    n = a["n"] or 1
     checks = []
-    cols = set(_ACC[0].keys()) if _ACC else set()
-    missing_cols = [c for c in _REQUIRED_ACC if c not in cols]
+    missing_cols = [c for c in _REQUIRED_ACC if c not in a["columns"]]
     checks.append({"id": "DQ1", "name": "Required columns present",
                    "status": "PASS" if not missing_cols else "FAIL",
                    "detail": "all present" if not missing_cols else f"missing: {missing_cols}"})
-
-    ids = [r.get("id") for r in _ACC if r.get("id")]
-    dups = len(ids) - len(set(ids))
     checks.append({"id": "DQ2", "name": "No duplicate loan ids",
-                   "status": "PASS" if dups == 0 else "FAIL",
-                   "detail": f"{dups} duplicate id(s)"})
-
-    n = len(_ACC) or 1
-    key_cols = ["loan_amnt", "int_rate", "grade", "loan_status", "issue_d"]
-    miss = {c: sum(1 for r in _ACC if not str(r.get(c, "")).strip()) for c in key_cols}
-    worst = max(miss.values()) if miss else 0
+                   "status": "PASS" if a["dup"] == 0 else "FAIL",
+                   "detail": f"{a['dup']} duplicate id(s)"})
+    worst = max(a["miss"].values()) if a["miss"] else 0
     checks.append({"id": "DQ3", "name": "Missing values in key fields",
                    "status": "PASS" if worst == 0 else ("WARN" if worst / n < 0.05 else "FAIL"),
-                   "detail": ", ".join(f"{c}={v}" for c, v in miss.items())})
-
-    bad_dates = sum(1 for r in _ACC if _year(r.get("issue_d")) is None)
+                   "detail": ", ".join(f"{c}={v}" for c, v in a["miss"].items())})
     checks.append({"id": "DQ4", "name": "Valid issue dates",
-                   "status": "PASS" if bad_dates == 0 else "WARN",
-                   "detail": f"{bad_dates} unparseable issue_d"})
-
-    amts = [_f(r.get("loan_amnt")) for r in _ACC]
-    outliers = sum(1 for a in amts if a <= 0 or a > 100000)
+                   "status": "PASS" if a["bad_dates"] == 0 else "WARN",
+                   "detail": f"{a['bad_dates']} unparseable issue_d"})
     checks.append({"id": "DQ5", "name": "Loan amount within bounds (0, 100k]",
-                   "status": "PASS" if outliers == 0 else ("WARN" if outliers / n < 0.05 else "FAIL"),
-                   "detail": f"{outliers} outlier amount(s)"})
-
-    rate_bad = sum(1 for r in _ACC if not (0 < _rate(r.get("int_rate")) < 0.5))
+                   "status": "PASS" if a["outliers"] == 0 else ("WARN" if a["outliers"] / n < 0.05 else "FAIL"),
+                   "detail": f"{a['outliers']} outlier amount(s)"})
     checks.append({"id": "DQ6", "name": "Interest rate within (0%, 50%)",
-                   "status": "PASS" if rate_bad == 0 else ("WARN" if rate_bad / n < 0.05 else "FAIL"),
-                   "detail": f"{rate_bad} out-of-range rate(s)"})
-
+                   "status": "PASS" if a["rate_bad"] == 0 else ("WARN" if a["rate_bad"] / n < 0.05 else "FAIL"),
+                   "detail": f"{a['rate_bad']} out-of-range rate(s)"})
     n_fail = sum(1 for c in checks if c["status"] == "FAIL")
     n_warn = sum(1 for c in checks if c["status"] == "WARN")
     return {"checks": checks, "n_pass": sum(1 for c in checks if c["status"] == "PASS"),
-            "n_warn": n_warn, "n_fail": n_fail, "rows_checked": len(_ACC),
-            "clean": n_fail == 0}
+            "n_warn": n_warn, "n_fail": n_fail, "rows_checked": a["n"], "clean": n_fail == 0}
 
 
 # --- Source Traceability ---------------------------------------------------
 
 def provenance():
-    """Which output traces to which file / columns / filter — the audit spine."""
     return {
         "source_file": ACCEPTED_FILE,
         "metrics": {
@@ -179,7 +295,7 @@ def provenance():
                                 "filter": "all accepted loans"},
             "expected_loss": {"file": ACCEPTED_FILE,
                               "columns": ["funded_amnt", "total_rec_prncp", "grade", "loan_status"],
-                              "filter": "on-book loans (Current/Late), PD by grade x LGD"},
+                              "filter": "on-book loans (not resolved), PD by grade x LGD"},
             "approval_rate": {"file": f"{ACCEPTED_FILE} + {REJECTED_FILE}",
                               "columns": ["count"], "filter": "accepted / (accepted + rejected)"},
         },
@@ -193,47 +309,30 @@ def provenance():
 # --- Loan Portfolio --------------------------------------------------------
 
 def portfolio_metrics():
-    funded = [_f(r.get("funded_amnt")) for r in _ACC]
-    total = sum(funded)
-    n = len(_ACC) or 1
-    wair = sum(_f(r.get("funded_amnt")) * _rate(r.get("int_rate")) for r in _ACC) / (total or 1)
-    by_grade, by_term, by_year, by_status = {}, {}, {}, {}
-    for r in _ACC:
-        amt = _f(r.get("funded_amnt"))
-        by_grade[r.get("grade", "?")] = by_grade.get(r.get("grade", "?"), 0.0) + amt
-        by_term[_term(r.get("term"))] = by_term.get(_term(r.get("term")), 0.0) + amt
-        y = _year(r.get("issue_d"))
-        by_year[y] = by_year.get(y, 0.0) + amt
-        s = _status(r) or "?"
-        by_status[s] = by_status.get(s, 0) + 1
+    a = _agg()
+    total = a["sum_funded"]
+    n = a["n"] or 1
     return {
-        "n_loans": len(_ACC), "originations_usd": total, "avg_loan_usd": total / n,
-        "wair": wair,
-        "by_grade_usd": {g: by_grade.get(g, 0.0) for g in GRADES},
-        "by_term_usd": by_term, "by_vintage_usd": by_year,
-        "status_counts": by_status,
+        "n_loans": a["n"], "originations_usd": total, "avg_loan_usd": total / n,
+        "wair": (a["sum_funded_rate"] / total) if total else 0.0,
+        "by_grade_usd": {g: a["g_funded"].get(g, 0.0) for g in GRADES},
+        "by_term_usd": dict(a["t_funded"]), "by_vintage_usd": dict(a["y_funded"]),
+        "status_counts": dict(a["by_status"]),
     }
 
 
 # --- Credit Risk / Losses --------------------------------------------------
 
 def credit_risk():
-    matured = [r for r in _ACC if _status(r) in _RESOLVED]
-    charged = [r for r in _ACC if _status(r) == "Charged Off"]
-    n_mat = len(matured) or 1
-    co_rate = len(charged) / n_mat
+    a = _agg()
+    co_rate = a["charged"] / (a["matured"] or 1)
 
-    # Realized PD and LGD by grade (from matured loans). Count how often the LGD
-    # recovery-rate proxy had to be clamped to [0,1] (a data-quality signal).
     pd_grade, lgd_grade = {}, {}
     lgd_clamped = 0
     for g in GRADES:
-        gm = [r for r in matured if r.get("grade") == g]
-        gc = [r for r in gm if _status(r) == "Charged Off"]
-        pd_grade[g] = (len(gc) / len(gm)) if gm else 0.0
-        # LGD = 1 - recovery rate on the charged-off principal.
-        co_prncp = sum(_f(r.get("funded_amnt")) - _f(r.get("total_rec_prncp")) for r in gc)
-        recov = sum(_f(r.get("recoveries")) for r in gc)
+        gm, gc = a["g_matured"].get(g, 0), a["g_charged"].get(g, 0)
+        pd_grade[g] = (gc / gm) if gm else 0.0
+        co_prncp, recov = a["g_co_prncp"].get(g, 0.0), a["g_recov"].get(g, 0.0)
         if co_prncp > 0:
             raw = 1 - (recov / co_prncp)
             if raw < 0 or raw > 1:
@@ -242,56 +341,41 @@ def credit_risk():
         else:
             lgd_grade[g] = 0.55
 
-    # Expected loss on the ON-BOOK loans (not yet resolved): outstanding x PD x LGD.
-    onbook = [r for r in _ACC if _status(r) not in _RESOLVED]
-    el = 0.0
-    outstanding_total = 0.0
-    for r in onbook:
-        outstanding = max(0.0, _f(r.get("funded_amnt")) - _f(r.get("total_rec_prncp")))
-        outstanding_total += outstanding
-        g = r.get("grade", "?")
-        el += outstanding * pd_grade.get(g, co_rate) * lgd_grade.get(g, 0.55)
-
-    delinquent = [r for r in _ACC if _status(r) in _DELINQUENT and _status(r) != "Charged Off"]
-    charged_off_usd = sum(_f(r.get("funded_amnt")) - _f(r.get("total_rec_prncp")) for r in charged)
+    # Expected loss on the ON-BOOK loans, summed by grade: outstanding x PD x LGD.
+    el = sum(out * pd_grade.get(g, co_rate) * lgd_grade.get(g, 0.55)
+             for g, out in a["g_onbook_out"].items())
+    outstanding_total = a["onbook_outstanding"]
 
     return {
-        "n_matured": len(matured), "n_charged_off": len(charged),
-        "charge_off_rate": co_rate, "charged_off_usd": charged_off_usd,
+        "n_matured": a["matured"], "n_charged_off": a["charged"],
+        "charge_off_rate": co_rate, "charged_off_usd": a["charged_off_usd"],
         "pd_by_grade": pd_grade, "lgd_by_grade": lgd_grade,
         "lgd_clamped_grades": lgd_clamped,
-        "n_onbook": len(onbook), "onbook_outstanding_usd": outstanding_total,
+        "n_onbook": a["onbook_n"], "onbook_outstanding_usd": outstanding_total,
         "expected_loss_usd": el,
         "expected_loss_pct": (el / outstanding_total) if outstanding_total else 0.0,
-        "n_delinquent": len(delinquent),
-        "delinquency_rate": len(delinquent) / (len(onbook) or 1),
+        "n_delinquent": a["delinquent"],
+        "delinquency_rate": a["delinquent"] / (a["onbook_n"] or 1),
     }
 
 
 # --- Revenue & Unit Economics ----------------------------------------------
 
 def unit_economics():
-    funded = sum(_f(r.get("funded_amnt")) for r in _ACC)
-    int_income = sum(_f(r.get("total_rec_int")) for r in _ACC)
-    fees = sum(_f(r.get("funded_amnt")) * _ORIG_FEE.get(r.get("grade"), 0.04) for r in _ACC)
-    net_cash = sum(_f(r.get("total_pymnt")) - _f(r.get("funded_amnt")) for r in _ACC)
-    # Cohort (vintage) profitability: cash-on-cash so far per issue year.
-    coh = {}
-    for r in _ACC:
-        y = _year(r.get("issue_d"))
-        c = coh.setdefault(y, {"funded": 0.0, "received": 0.0})
-        c["funded"] += _f(r.get("funded_amnt"))
-        c["received"] += _f(r.get("total_pymnt"))
-    cohorts = {y: {"funded_usd": v["funded"], "received_usd": v["received"],
-                   "net_usd": v["received"] - v["funded"],
-                   "cash_on_cash": (v["received"] / v["funded"]) if v["funded"] else 0.0}
-               for y, v in coh.items()}
+    a = _agg()
+    funded = a["sum_funded"]
+    int_income, fees = a["sum_int_income"], a["sum_fees"]
+    cohorts = {}
+    for y in a["y_funded"]:
+        fu, re_ = a["y_funded"][y], a["y_received"].get(y, 0.0)
+        cohorts[y] = {"funded_usd": fu, "received_usd": re_, "net_usd": re_ - fu,
+                      "cash_on_cash": (re_ / fu) if fu else 0.0}
     return {
         "interest_income_usd": int_income, "origination_fees_usd": fees,
         "total_revenue_proxy_usd": int_income + fees,
         "yield_realized": (int_income / funded) if funded else 0.0,
         "take_rate": (fees / funded) if funded else 0.0,
-        "net_cash_to_date_usd": net_cash,
+        "net_cash_to_date_usd": a["sum_total_pymnt"] - funded,
         "cohorts": cohorts,
     }
 
@@ -299,39 +383,39 @@ def unit_economics():
 # --- Rejection / approval --------------------------------------------------
 
 def approval_metrics():
-    na, nr = len(_ACC), len(_REJ)
+    a = _agg()
+    na, nr = a["n"], a["rej_n"]
     total = na + nr
     return {"accepted": na, "rejected": nr,
             "approval_rate": (na / total) if total else 0.0,
-            "avg_requested_rejected_usd": (sum(_f(r.get("Amount Requested")) for r in _REJ) / nr)
-            if nr else 0.0}
+            "avg_requested_rejected_usd": (a["rej_sum"] / nr) if nr else 0.0}
 
 
 # --- Public Benchmark + Variance -------------------------------------------
 
 def _computed_for(metric, period):
-    """Compute a metric for a given filing period (year as string, or 'ALL')."""
-    rows = _ACC if period in ("ALL", "", None) else [
-        r for r in _ACC if str(_year(r.get("issue_d"))) == str(period)]
+    """Compute a metric for a filing period (a year, or 'ALL') from the aggregates."""
+    a = _agg()
+    allp = period in ("ALL", "", None)
+    yr = None if allp else int(period) if str(period).isdigit() else period
     if metric == "originations_usd":
-        return sum(_f(r.get("funded_amnt")) for r in rows)
+        return a["sum_funded"] if allp else a["y_funded"].get(yr, 0.0)
     if metric == "interest_income_usd":
-        return sum(_f(r.get("total_rec_int")) for r in rows)
+        return a["sum_int_income"] if allp else a["y_int_income"].get(yr, 0.0)
     if metric == "loan_count":
-        return float(len(rows))
+        return float(a["n"]) if allp else float(a["y_count"].get(yr, 0))
     if metric == "avg_interest_rate":
-        f = sum(_f(r.get("funded_amnt")) for r in rows) or 1
-        return sum(_f(r.get("funded_amnt")) * _rate(r.get("int_rate")) for r in rows) / f
+        fr = a["sum_funded_rate"] if allp else a["y_funded_rate"].get(yr, 0.0)
+        fu = a["sum_funded"] if allp else a["y_funded"].get(yr, 0.0)
+        return (fr / fu) if fu else 0.0
     if metric == "charge_off_rate":
-        mat = [r for r in rows if _status(r) in _RESOLVED]
-        co = [r for r in mat if _status(r) == "Charged Off"]
-        return (len(co) / len(mat)) if mat else 0.0
+        mat = a["matured"] if allp else a["y_matured"].get(yr, 0)
+        co = a["charged"] if allp else a["y_charged"].get(yr, 0)
+        return (co / mat) if mat else 0.0
     return None
 
 
 def benchmark_vs_filings():
-    """Compare computed KPIs to the public-filing values, with variance. Skips
-    metrics the engine can't compute or filings it doesn't have."""
     out = []
     for r in _FIL:
         metric, period = r.get("metric"), r.get("period")
@@ -340,9 +424,9 @@ def benchmark_vs_filings():
         if computed is None:
             continue
         var = computed - filed
-        var_pct = (var / filed * 100) if filed else 0.0
         out.append({"metric": metric, "period": period, "filed": filed,
-                    "computed": computed, "var": var, "var_pct": var_pct,
+                    "computed": computed, "var": var,
+                    "var_pct": (var / filed * 100) if filed else 0.0,
                     "source_doc": r.get("source_doc", ""), "note": r.get("note", "")})
     return {"rows": out, "n": len(out),
             "max_abs_var_pct": max((abs(x["var_pct"]) for x in out), default=0.0)}
@@ -361,6 +445,8 @@ def model_risk_review():
     flags = []
     if not ing["is_real_data"]:
         flags.append(["HIGH", "running on the seeded SAMPLE, not the real LendingClub files"])
+    if ing.get("capped"):
+        flags.append(["MEDIUM", f"scan capped at LC_MAX_ROWS ({ing['accepted_rows']} rows) — not the full book"])
     flags.append(["MEDIUM", "expected-loss and fee figures use documented PROXIES, not disclosures"])
     if not _FIL:
         flags.append(["MEDIUM", "no public-filing benchmark loaded (public_filings.csv empty)"])

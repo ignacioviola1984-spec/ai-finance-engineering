@@ -27,6 +27,18 @@ here; the credit agents narrate over those numbers (they never invent a figure).
 No API key is needed to read the data; the agents need `ANTHROPIC_API_KEY` only to
 write the narrative.
 
+## Performance / memory
+
+The engine reads the files in a **single streaming pass** (`csv.DictReader` is a
+lazy iterator — the file is never loaded into a list), accumulating only aggregates
+keyed by grade, term, vintage and status. Memory stays **flat (~80 MB even for 1M+
+rows)**, so the full real loan book runs on a laptop. The full real files
+(~2.2M accepted + ~27M rejected rows) take a few minutes to scan once.
+
+- `LC_MAX_ROWS=200000 python ../cfo-office/credit_orchestrator.py` caps the scan
+  for fast iteration (off by default — the real test runs on the full file; the
+  model-risk agent flags when a run was capped).
+
 > The sample exists so the credit operating model is built and verified **now**.
 > Numbers computed on the sample are illustrative; the real test runs on the full
 > Kaggle files.

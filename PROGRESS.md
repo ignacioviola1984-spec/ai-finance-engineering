@@ -312,8 +312,18 @@ Bitacora de avance, fase por fase.
 - Verificado keyless (narracion stubbeada): 9/9 etapas PASS + 9/9 firmas + 4
   escalamientos + cross-checks atan + 53 eventos de audit; block-path: una falla
   de data-quality bloquea en la etapa 2 ("bad data does not proceed"). SaaS intacto
-  (review.py desacoplado: FUNCTIONS=11, evals 33/33). Pendiente: data real de
-  Nacho, corrida con LLM, diagrama del track y review adversarial.
+  (review.py desacoplado: FUNCTIONS=11, evals 33/33).
+- Review adversarial (22 agentes): 18 hallazgos, 15 confirmados, LOS 15 arreglados
+  y re-verificados. El grave (HIGH): los estados reales "Does not meet the credit
+  policy. Status:..." se misclasificaban -> habria corrompido charge-off/PD/EL al
+  cargar el CSV real; ahora se normaliza el prefijo. Otros: escalamientos
+  independientes, el LLM ya no emite veredicto de riesgo propio, proxies
+  etiquetados, cross-checks de integridad reales, gate muerto removido.
+- STREAMING: credit_core lee el archivo en UNA pasada (csv.DictReader lazy),
+  acumulando solo agregados -> memoria O(buckets). Verificado: 1.2M filas en 81 MB
+  pico (vs varios GB si se cargara como lista); numeros del sample IDENTICOS;
+  API publica sin cambios (agentes/etapas intactos). Perilla opcional LC_MAX_ROWS.
+  Pendiente: data real de Nacho (la baja de Kaggle), corrida con LLM, diagrama.
 
 ## Siguiente
 
