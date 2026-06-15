@@ -29,20 +29,29 @@ before any figure reaches the board. Details:
 **Stack:** Python, Anthropic API, agent patterns (chaining, routing,
 sub-agents), audit trail, human-in-the-loop controls.
 
-### CFO Office — multi-agent team over shared state (`cfo-office/`)
-The operating model evolved into a CFO office: specialized agents
-(Controller, Treasury, FP&A) that communicate through a shared state book
-(`CFOContext`), coordinated by a CFO orchestrator. The CFO runs the agents
-over one shared state, reconciles their numbers with deterministic
-cross-checks, consolidates escalations by severity without double-counting,
-and asks for a single human sign-off before fixing the board pack. FP&A
-reports two variance lenses: month-over-month and budget-vs-actual (favorable
-/unfavorable by line type, with a materiality threshold). Details:
-[`cfo-office/README.md`](cfo-office/README.md).
+### CFO Office — multi-agent finance department over shared state (`cfo-office/`)
+The operating model evolved into a full CFO office: **eight specialist agents**
+— Controller, Treasury, Administration (Accounts Receivable / Accounts Payable /
+Tax), Accounting & Reporting (the close and the three financial statements),
+FP&A, Strategic Finance, Internal Controls, and an **independent Audit** — that
+communicate through a shared state book (`CFOContext`), coordinated by a CFO
+orchestrator. It runs the whole month-end loop — **record → close → report →
+analyze → control → audit** — reconciles the agents' numbers with deterministic
+cross-checks, consolidates escalations by severity without double-counting, and
+asks for a single human sign-off before fixing the board pack. Two of the agents
+are themselves sub-orchestrators (Administration, Accounting & Reporting), giving
+a real two-level org. The books reconcile, the three financial statements
+articulate, and the Audit agent re-derives the figures independently and issues
+an opinion. Details: [`cfo-office/README.md`](cfo-office/README.md).
 
-**Stack:** Python, Anthropic API, shared-state multi-agent coordination,
-budget-vs-actual variance, cross-agent reconciliation, audit trail,
-human-in-the-loop controls.
+**Stack:** Python, Anthropic API, shared-state multi-agent coordination, two-level
+orchestration, record-to-report (reconciliations + articulating financial
+statements), budget-vs-actual variance, internal controls, independent audit,
+cross-agent reconciliation, audit trail, human-in-the-loop controls.
+
+> **Could this run in production, or is it a vision?** An honest, CFO-grade
+> assessment — what's already production-grade, where the real gap is, and how it
+> deploys today as a governed co-pilot: [`PRODUCTION-READINESS.md`](PRODUCTION-READINESS.md).
 
 ### Finance Document Intelligence / RAG (`document-intelligence/`)
 Semantic search, retrieval-augmented generation, and structured extraction
