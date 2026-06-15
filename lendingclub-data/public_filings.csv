@@ -1,0 +1,10 @@
+period,metric,value,unit,source_doc,note
+ALL,originations_usd,2750000,USD,PLACEHOLDER 10-K,Replace with real LendingClub total originations
+ALL,interest_income_usd,700000,USD,PLACEHOLDER 10-K,Replace with real interest income
+ALL,avg_interest_rate,0.145,ratio,PLACEHOLDER 10-K,Replace with real weighted-avg rate
+ALL,charge_off_rate,0.12,ratio,PLACEHOLDER 10-K,Replace with real net charge-off rate
+ALL,loan_count,140,count,PLACEHOLDER 10-K,Replace with real number of loans
+2015,originations_usd,800000,USD,PLACEHOLDER 10-K,Replace with real FY2015 originations
+2016,originations_usd,880000,USD,PLACEHOLDER 10-K,Replace with real FY2016 originations
+2017,originations_usd,740000,USD,PLACEHOLDER 10-K,Replace with real FY2017 originations
+2018,originations_usd,400000,USD,PLACEHOLDER 10-K,Replace with real FY2018 originations
