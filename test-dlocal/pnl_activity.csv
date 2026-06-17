@@ -1,0 +1,23 @@
+account_code,account_name,period,entity_id,amount_usd_000
+4000,Revenues,2024-12,DLO,745974
+4000,Revenues,2025-12,DLO,1093587
+5000,Cost of services,2024-12,DLO,-451301
+5000,Cost of services,2025-12,DLO,-690831
+6100,Technology and development expenses,2024-12,DLO,-25625
+6100,Technology and development expenses,2025-12,DLO,-30707
+6200,Sales and marketing expenses,2024-12,DLO,-21626
+6200,Sales and marketing expenses,2025-12,DLO,-26457
+6300,General and administrative expenses,2024-12,DLO,-101225
+6300,General and administrative expenses,2025-12,DLO,-118773
+6400,Impairment loss on financial assets,2024-12,DLO,-440
+6400,Impairment loss on financial assets,2025-12,DLO,-2189
+6500,Other operating loss,2024-12,DLO,-5257
+6500,Other operating loss,2025-12,DLO,-4715
+7100,Finance income,2024-12,DLO,66875
+7100,Finance income,2025-12,DLO,40798
+7200,Finance costs,2024-12,DLO,-49701
+7200,Finance costs,2025-12,DLO,-27855
+7300,Inflation adjustment,2024-12,DLO,-6655
+7300,Inflation adjustment,2025-12,DLO,-4204
+8000,Income tax expense,2024-12,DLO,-30550
+8000,Income tax expense,2025-12,DLO,-31752

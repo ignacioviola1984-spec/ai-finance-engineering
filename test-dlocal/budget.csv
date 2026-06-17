@@ -1,0 +1,5 @@
+metric,period,base_fy2024_usd_000,guidance_low_pct,guidance_high_pct,plan_midpoint_usd_000,actual_usd_000,actual_growth_pct,verdict
+TPV,2025,25575000,40,50,37083750,40816000,60.0,Beat (above high end)
+Revenue,2025,745974,30,40,1007065,1093587,46.6,Beat (above high end)
+Gross profit,2025,294673,27.5,37.5,390442,402756,36.7,In range (near high end)
+Adjusted EBITDA,2025,188725,40,50,273651,278078,47.3,In range

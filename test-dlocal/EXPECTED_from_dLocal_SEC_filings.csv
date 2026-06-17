@@ -1,0 +1,18 @@
+key,expected_value,unit,source
+gross_profit_fy2025,402756,USD_000,dLocal FY2025 6-K income statement
+operating_profit_fy2025,219915,USD_000,dLocal FY2025 6-K income statement
+profit_before_tax_fy2025,228654,USD_000,dLocal FY2025 6-K income statement
+net_income_fy2025,196902,USD_000,dLocal FY2025 6-K income statement
+net_income_fy2024,120469,USD_000,dLocal FY2025 6-K (2024 comparative)
+adjusted_ebitda_fy2025,278078,USD_000,dLocal FY2025 6-K Adjusted EBITDA reconciliation
+total_assets_fy2025,1540964,USD_000,dLocal FY2025 6-K balance sheet
+total_assets_fy2024,1171329,USD_000,dLocal FY2024 6-K balance sheet
+total_liabilities_fy2025,971535,USD_000,dLocal FY2025 6-K balance sheet
+total_equity_fy2025,569429,USD_000,dLocal FY2025 6-K balance sheet
+closing_cash_fy2025,719897,USD_000,dLocal FY2025 6-K cash flow statement
+gross_margin_fy2025_pct,36.8,pct,computed from reported (GP / Revenue)
+net_margin_fy2025_pct,18.0,pct,computed from reported (NI / Revenue)
+adjusted_ebitda_margin_fy2025_pct,25.4,pct,computed from reported (Adj EBITDA / Revenue)
+revenue_growth_yoy_pct,46.6,pct,computed from reported revenue
+gross_profit_growth_yoy_pct,36.7,pct,computed from reported gross profit
+net_income_growth_yoy_pct,63.4,pct,computed from reported net income

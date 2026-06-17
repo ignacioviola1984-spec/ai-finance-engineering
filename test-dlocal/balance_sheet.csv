@@ -1,0 +1,31 @@
+section,line_item,period,entity_id,amount_usd_000
+ASSET,Cash and cash equivalents,2024-12,DLO,425172
+ASSET,Cash and cash equivalents,2025-12,DLO,719897
+ASSET,Trade and other receivables - current,2024-12,DLO,496713
+ASSET,Trade and other receivables - current,2025-12,DLO,572024
+ASSET,Other current assets (FVPL/derivatives/other),2024-12,DLO,150998
+ASSET,Other current assets (FVPL/derivatives/other),2025-12,DLO,128836
+ASSET,Trade and other receivables - non-current,2024-12,DLO,18044
+ASSET,Trade and other receivables - non-current,2025-12,DLO,25982
+ASSET,Intangible assets,2024-12,DLO,63318
+ASSET,Intangible assets,2025-12,DLO,73965
+ASSET,Other non-current assets,2024-12,DLO,17084
+ASSET,Other non-current assets,2025-12,DLO,20260
+LIABILITY,Trade and other payables,2024-12,DLO,597787
+LIABILITY,Trade and other payables,2025-12,DLO,854436
+LIABILITY,Tax liabilities,2024-12,DLO,21515
+LIABILITY,Tax liabilities,2025-12,DLO,21500
+LIABILITY,Financial liabilities,2024-12,DLO,50455
+LIABILITY,Financial liabilities,2025-12,DLO,86898
+LIABILITY,Other current liabilities (lease/derivatives/provisions),2024-12,DLO,7864
+LIABILITY,Other current liabilities (lease/derivatives/provisions),2025-12,DLO,3076
+LIABILITY,Non-current liabilities,2024-12,DLO,4721
+LIABILITY,Non-current liabilities,2025-12,DLO,5625
+EQUITY,Share premium,2024-12,DLO,186769
+EQUITY,Share premium,2025-12,DLO,7097
+EQUITY,Capital reserve,2024-12,DLO,33438
+EQUITY,Capital reserve,2025-12,DLO,42641
+EQUITY,Retained earnings,2024-12,DLO,490024
+EQUITY,Retained earnings,2025-12,DLO,534818
+EQUITY,Other equity and reserves (share capital/treasury/other reserves/NCI),2024-12,DLO,-221244
+EQUITY,Other equity and reserves (share capital/treasury/other reserves/NCI),2025-12,DLO,-15127
