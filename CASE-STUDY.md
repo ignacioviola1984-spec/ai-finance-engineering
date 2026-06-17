@@ -3,8 +3,11 @@
 A walk-through of one saved run of the multi-agent CFO office, end to end,
 on a synthetic SaaS company (**Lumen Inc.**) closing **May 2026**. Every figure
 below was computed by code and produced by the system — nothing here is mocked up
-for the page. The interactive version is in [`cfo-demo/`](cfo-demo/); the operating
-model is in [`OPERATING-MODEL.md`](OPERATING-MODEL.md) and
+for the page. The deterministic math is separately reconciled to a real public
+company (dLocal, NASDAQ: DLO) from its public SEC filings: see
+[Real-data validation](#real-data-validation-dlocal-nasdaq-dlo) below. The
+interactive version is in [`cfo-demo/`](cfo-demo/); the operating model is in
+[`OPERATING-MODEL.md`](OPERATING-MODEL.md) and
 [`diagrams/07_operating_model_hitl_gates.svg`](diagrams/07_operating_model_hitl_gates.svg).
 
 > **This is not a chatbot for finance.** AI agents draft, code-based controls
@@ -88,9 +91,70 @@ each sign-off (who, what they decided, any correction note, and the timestamp).
 ## Reliability
 
 An evaluation harness ([`evals/`](evals/)) runs as a regression test and exits
-non-zero on failure: **33/33 checks pass** — 22 on the consolidated numbers, 9 on
-contract-extraction accuracy, and a grounding guardrail that confirms the system
-**refuses** out-of-scope questions instead of inventing answers.
+non-zero on failure: it **passes locally, 33/33 checks**, 22 on the consolidated
+numbers, 9 on contract-extraction accuracy, and 2 grounding guardrails that confirm
+the system **refuses** out-of-scope questions instead of inventing answers. (Local
+eval, not third-party or externally verified.)
+
+## Real-data validation: dLocal (NASDAQ: DLO)
+
+The Lumen run above is synthetic. To check the deterministic math against reality,
+the model was reconciled to a real public company using **only its public SEC
+filings**: **dLocal** (NASDAQ: DLO), reported FY2024 and FY2025 consolidated numbers
+(IFRS, USD).
+
+A deterministic, dependency-free workflow regenerates **17 statement-level figures**
+from dLocal public input CSVs, and a separate read-only auditor diffs them against an
+SEC-derived answer key. **Result: 17 PASS, 0 FAIL, exit 0.** The 17 figures are
+statement-level: P&L subtotals (gross profit, operating profit, profit before tax,
+net income FY2025, net income FY2024), Adjusted EBITDA, balance-sheet section totals
+(total assets FY2025 and FY2024, total liabilities, total equity), closing cash,
+margins (gross, net, Adjusted EBITDA), and year-over-year growth (revenue, gross
+profit, net income).
+
+**Reproduce it in two commands**, with no LLM and no API keys:
+
+```bash
+python test-dlocal/run_dlocal_test.py
+python test-dlocal/audit_dlocal_test.py
+```
+
+It is pure Python standard library, deterministic (identical bytes on re-run). The
+auditor is read-only and **fails closed**: a wrong USD value fails, missing/extra/
+duplicate keys fail, a non-numeric value fails. Full evidence and boundaries are in
+[`test-dlocal/AUDIT_EVIDENCE.md`](test-dlocal/AUDIT_EVIDENCE.md).
+
+**Dual-model review.** External to the model-output generation path, a second model
+(Codex) independently reviewed the repo, the test design, the local eval evidence,
+and the claim boundaries. "External" here means external to the preparer/model-output
+generation path. It is **not** a formal external or statutory audit, a certification,
+an assurance opinion, or a substitute for a human auditor.
+
+**Scope boundary (read it, do not skip it).** This validates the deterministic
+statement-level math against a real public company reported financials: the accuracy
+and determinism claim moves from asserted to checked against reality. It does **not**
+prove the entire operating model on real transaction-level data. No public company
+discloses transaction-level subledgers, so the transaction-level AR/AP/tax agents and
+the multi-entity, multi-currency consolidation shown above are **not** validated on
+real data. Public data only, built solely from dLocal public SEC filings. dLocal is
+not affiliated with this project and did not endorse, sponsor, or review it. No
+non-public, internal, or confidential data was used. The exercise is illustrative.
+
+## Three independent angles of assurance
+
+Taken together, the demo stands on three independent checks plus a fail-closed,
+read-only auditor:
+
+| Angle | What it tests | Evidence |
+|---|---|---|
+| **Adversarial synthetic traps** | Detection | Run cold against four synthetic month-end datasets with roughly 30 seeded errors each; the large majority of seeded traps are caught via planted-ID and flag-column scans |
+| **Real public-company reconciliation** | Accuracy | dLocal: 17 of 17 statement-level figures tie to reported financials |
+| **Independent second-model review** | Dual-model | Codex review external to the model-output generation path |
+
+On the synthetic stress tests, detection is strong; the recurring gap is quantifying
+and classifying the adjustments (amounts, P&L-vs-balance-sheet, where credit losses
+sit), which still needed correction against ground truth. That is exactly why a human
+checker stays in the loop.
 
 ## Illustrative impact
 
@@ -105,12 +169,16 @@ pilot.
 
 ## Honest limitations
 
-- The figures are **synthetic** (a fictional SaaS, Lumen Inc.); the architecture is
-  built to point at production data.
+- The figures in this run are **synthetic** (a fictional SaaS, Lumen Inc.); the
+  architecture is built to point at production data. The deterministic
+  statement-level math is separately checked against a real public company (dLocal,
+  17 of 17), but the transaction-level subledgers and multi-entity consolidation
+  shown here are **not** validated on real data, because no public company discloses
+  transaction-level data.
 - The public demo **auto-approves** the human sign-offs (no reviewer is at the
   console when the snapshot is generated) and labels them as such — the
   maker-checker workflow, audit trail and block-on-reject are real; only the
-  keystroke is simulated.
+  keystroke is simulated. Auto-approved is not a human sign-off.
 
 ---
 

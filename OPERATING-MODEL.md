@@ -32,6 +32,22 @@ gates that do not depend on anyone's opinion (the books reconcile, the statement
 articulate and foot, there are zero integrity failures, the audit opinion is not
 adverse). The model cannot pass a stage just because someone clicked "approve".
 
+This deterministic-numbers-in-code property has now been checked against reality,
+not just asserted. A separate harness regenerates 17 statement-level figures from a
+real public company's filings (dLocal, NASDAQ: DLO) and an independent, read-only
+auditor diffs them against an SEC-derived answer key: 17 PASS, 0 FAIL. The figures
+are statement-level (P&L subtotals, Adjusted EBITDA, balance-sheet section totals,
+closing cash, margins, year-over-year growth) and tie to dLocal's reported
+FY2024/FY2025 consolidated numbers (IFRS, USD). It runs in two commands with pure
+Python standard library, no LLM and no API keys, deterministic on re-run. This
+validates the close (stage 4) statement-level math; it does **not** validate the
+transaction-level agents in stages 1-3 (AR, AP, Tax) or the multi-entity /
+multi-currency consolidation, because no public company discloses transaction-level
+subledgers. Public data only: dLocal is not affiliated with this project and did not
+endorse, sponsor, or review it; no non-public data was used; the exercise is
+illustrative. See [`test-dlocal/AUDIT_EVIDENCE.md`](test-dlocal/AUDIT_EVIDENCE.md)
+for the full evidence and boundaries.
+
 ## Each stage has four parts
 
 | Part | What it is | Where |
@@ -111,8 +127,22 @@ modes — only the keystroke is simulated, not the control.
 
 - **Is:** a realistic, production-shaped operating model — staged, with
   deterministic controls and a domain expert accountable for each function, and a
-  CFO accountable for the consolidated result.
-- **Isn't (yet):** wired to production data (the figures are synthetic), and the
-  public demo auto-approves the human steps. Materiality-based routing of the
-  HITL, regulatory compliance, payroll and AgentOps/CI are deliberately out of
-  scope for this build.
+  CFO accountable for the consolidated result. Its statement-level math is checked
+  three ways: adversarial synthetic traps (detection), a real public-company
+  reconciliation (accuracy), and an independent second-model review (dual-model).
+- **Isn't (yet):** fully wired to production data. The statement-level numbers now
+  reconcile 17 of 17 to a real public company's reported financials (dLocal, see
+  above), but the day-to-day run figures are synthetic, the transaction-level
+  agents (AR, AP, Tax) and multi-entity / multi-currency consolidation are not
+  validated on real data, and the public demo auto-approves the human steps.
+  Materiality-based routing of the HITL, regulatory compliance, payroll and
+  AgentOps/CI are deliberately out of scope for this build.
+
+The synthetic side is not "clean" data either. The model was run cold against four
+synthetic month-end datasets with roughly 30 seeded errors each. Detection is
+strong: the large majority of seeded traps are caught via planted-ID and
+flag-column scans. The recurring gap is quantifying and classifying the adjustments
+(amounts, P&L-vs-balance-sheet, where credit losses sit), which still needed
+correction against ground truth. That gap is precisely why the domain-expert
+checker stays in the loop rather than being optional. (The local eval harness passes
+33/33 locally; that is a local result, not a third-party or external verification.)

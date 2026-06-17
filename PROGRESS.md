@@ -293,6 +293,59 @@ Bitacora de avance, fase por fase.
 - Verificado: corrida staged auto = 8/8 PASS + CFO 11/11, 68 eventos de audit;
   test de control-fail -> etapa "blocked" (rework y luego block). Evals 22/22.
 
+### Fase 8.2 — Validacion con datos reales: dLocal (NASDAQ: DLO)  [OK]  (2026-06-17)
+- Hito: la matematica statement-level del modelo se ATA contra los numeros
+  reportados de una empresa publica real, usando SOLO sus filings publicos de la
+  SEC. La afirmacion de exactitud/determinismo pasa de "asertada" a "checkeada
+  contra la realidad". Evidencia y boundaries completas en
+  test-dlocal/AUDIT_EVIDENCE.md.
+- Preparador + auditor reproducibles (dos comandos, sin LLM, sin API keys):
+  test-dlocal/run_dlocal_test.py regenera 17 figuras statement-level desde CSVs
+  de input publicos de dLocal; test-dlocal/audit_dlocal_test.py las diffea
+  contra una answer key derivada de la SEC (test-dlocal/EXPECTED_from_dLocal_SEC_filings.csv).
+  Resultado: 17 PASS, 0 FAIL, exit 0. Python puro de libreria estandar,
+  determinista (mismos bytes al re-correr).
+- Las 17 figuras son statement-level: subtotales de P&L (gross profit, operating
+  profit, profit before tax, net income FY2025, net income FY2024), Adjusted
+  EBITDA, totales de secciones del balance (total assets FY2025 y FY2024, total
+  liabilities, total equity), caja de cierre, margenes (gross, net, Adjusted
+  EBITDA) y crecimiento YoY (revenue, gross profit, net income). Atan a los
+  numeros consolidados reportados de dLocal FY2024/FY2025 (IFRS, USD).
+- Auditor read-only y fail-closed (auto-testeado): un valor USD equivocado falla,
+  claves faltantes/extra/duplicadas fallan, no-numerico falla; un porcentaje en
+  el borde de la tolerancia 0.1 pasa.
+- Review externo asistido por IA, dual-model: Codex reviso de forma independiente
+  el repo, el diseno del test, la evidencia del eval local y los limites de las
+  afirmaciones, EXTERNO al camino de generacion de output del modelo. "Externo"
+  significa externo al preparador/camino de generacion. NO es una auditoria
+  externa o estatutaria formal, ni una certificacion, ni una opinion de
+  aseguramiento, ni un sustituto de un auditor humano.
+- Eval harness local: pasa 33/33 (Numbers 22/22, Extraction 9/9, Grounding 2/2).
+  Se enuncia como "pasa localmente"; no se afirma verificacion externa o de
+  tercero del eval harness.
+- Stress test sintetico (en frio): el modelo corrio contra CUATRO datasets
+  sinteticos de fin de mes con ROUGHLY 30 errores sembrados cada uno. La
+  deteccion es fuerte (la gran mayoria de las trampas se atrapan por scans de
+  ID-plantado y de columnas-flag). El gap recurrente es cuantificar y clasificar
+  los ajustes (montos, P&L-vs-balance, donde van las perdidas de credito), que
+  todavia necesito corregir contra ground truth. Por eso el human checker se
+  queda en el loop.
+- BOUNDARY (no enterrar): statement-level y analitico SOLO. Ninguna empresa
+  publica divulga subledgers transaccionales, asi que los agentes
+  transaccionales AR/AP/tax y la consolidacion multi-entidad / multi-moneda NO
+  estan validados con datos reales. El pass de dLocal valida la matematica
+  determinista statement-level contra los numeros reportados de una empresa
+  publica real; NO prueba el operating model completo sobre datos reales
+  transaccionales. Solo datos publicos: construido unicamente con los filings
+  publicos de dLocal en la SEC. dLocal no esta afiliada a este proyecto y no lo
+  endorso, patrocino ni reviso. No se uso ningun dato no-publico, interno o
+  confidencial. El ejercicio es ilustrativo.
+- Tres angulos independientes de aseguramiento, honestos por construccion:
+  trampas sinteticas adversariales (deteccion), reconciliacion contra empresa
+  publica real (exactitud) y un review independiente de segundo modelo
+  (dual-model), mas un auditor read-only y fail-closed. El alcance y los limites
+  son explicitos; sin hype.
+
 ## Siguiente
 
 ### Fase 6.2 — Deploy + demo

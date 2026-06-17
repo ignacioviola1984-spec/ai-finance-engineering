@@ -9,6 +9,17 @@ years of experience, now building the systems.
 > **See it run:** [`CASE-STUDY.md`](CASE-STUDY.md) walks a month-end close end to end
 > on synthetic data (every figure computed in code). **Work with me:** [`OFFERING.md`](OFFERING.md).
 
+> **Validated against real public filings:** the deterministic statement-level math
+> now ties **17 of 17** figures to dLocal (NASDAQ: DLO) reported FY2024/FY2025
+> consolidated numbers (IFRS, USD), regenerated from dLocal public SEC filings and
+> diffed against an SEC-derived answer key by a fail-closed, read-only auditor (17
+> PASS, 0 FAIL). Reproducible in two commands, with no LLM and no API keys. This
+> validates the statement-level math against a real company's reported financials;
+> it does not prove the transaction-level agents or multi-entity consolidation,
+> which no public company discloses. Public data only; dLocal is not affiliated
+> with this project and did not endorse or review it. Full evidence and boundaries:
+> [`test-dlocal/AUDIT_EVIDENCE.md`](test-dlocal/AUDIT_EVIDENCE.md).
+
 ## Projects
 
 ### Finance MCP Connector (`finance-mcp/`)
@@ -109,6 +120,24 @@ computed deterministically in code; the model routes, reasons, and writes
 prose, but never produces a number on its own. Controls and a human approve
 at the critical points.
 
+That accuracy is checked three independent ways. (1) Real public-company
+reconciliation: the deterministic statement-level numbers tie 17 of 17 to
+dLocal reported FY2024/FY2025 financials, so the accuracy claim moves from
+asserted to checked against reality (statement-level only; see the callout
+above and [`test-dlocal/AUDIT_EVIDENCE.md`](test-dlocal/AUDIT_EVIDENCE.md)).
+(2) Adversarial synthetic traps: run cold against four synthetic month-end
+datasets with roughly 30 seeded errors each, the model catches the large
+majority of the planted traps via planted-ID and flag-column scans; the
+recurring gap is quantifying and classifying the adjustments (amounts,
+P&L vs balance sheet, where credit losses sit), which still needed correction
+against ground truth, which is exactly why a human checker stays in the loop.
+(3) Independent second-model review: Codex independently reviewed the repo,
+the test design, the local eval evidence, and the claim boundaries, external
+to the model-output generation path. That is not a formal external or statutory
+audit, a certification, or an assurance opinion, and is not a substitute for a
+human auditor. The local eval harness passes 33/33 locally (Numbers 22/22,
+Extraction 9/9, Grounding 2/2).
+
 ## Requirements
 
 - Python 3
@@ -119,7 +148,12 @@ at the critical points.
 
 17 years in senior finance, now building AI systems for finance operations.
 These projects run on synthetic data modeled on a multi-entity SaaS; the
-architecture and accounting logic are built to point at production data.
+architecture and accounting logic are built to point at production data. The
+deterministic statement-level math has additionally been reconciled against a
+real public company (dLocal, 17 of 17 figures from its public SEC filings); the
+transaction-level agents and multi-entity consolidation remain on synthetic data,
+since no public company discloses transaction-level detail. The exercise is
+illustrative and uses public data only.
 
 Available for **finance-transformation roles and advisory engagements** —
 see [`OFFERING.md`](OFFERING.md).

@@ -14,13 +14,40 @@ research breakthrough.
 
 The right mental model is a **co-pilot for the close**, not an autonomous CFO.
 
+The core accuracy claim is now backed by reproducible evidence, not only
+asserted. The deterministic numbers have been audited against a real public
+company: feeding dLocal's (NASDAQ: DLO) reported FY2024 and FY2025 consolidated
+figures through the workflow reproduces 17 statement-level numbers that tie to
+the filings exactly (**17 PASS, 0 FAIL**). They have also been stress-tested
+against adversarial synthetic data, four month-end datasets with roughly 30
+seeded errors each. Both are statement-level checks, not a validation of the
+entire operating model on real transaction-level data.
+
+## What has actually been tested (the evidence)
+
+So the claims above are not just asserted, here is what was actually run and what
+each test proves (and, as importantly, what it does not). The boundaries are
+deliberate: this is statement-level and analytical only, on public data only. The
+full evidence and scope notes are in `test-dlocal/AUDIT_EVIDENCE.md`.
+
+| Test | What it proves | What it does not prove |
+|---|---|---|
+| **Real-company reconciliation (dLocal, NASDAQ: DLO).** A dependency-free workflow regenerates 17 statement-level figures from dLocal public input CSVs; a read-only auditor diffs them against an SEC-derived answer key. Result: 17 PASS, 0 FAIL. | The deterministic numbers tie to a real public company's reported FY2024/FY2025 consolidated financials (IFRS, USD): P&L subtotals, Adjusted EBITDA, balance-sheet section totals, closing cash, margins, and year-over-year growth. Accuracy moves from asserted to checked. Reproducible in two commands, no LLM, no API keys. | Statement-level only. No public filer discloses transaction-level subledgers, so the transaction-level AR/AP/tax agents and the multi-entity / multi-currency consolidation are not validated here. |
+| **Adversarial synthetic stress test.** The model was run cold against four synthetic month-end datasets with roughly 30 seeded errors each. | Detection is strong: the large majority of seeded traps are caught via planted-ID and flag-column scans. | The recurring gap is quantifying and classifying the adjustments (amounts, P&L vs balance sheet, where credit losses sit), which still needed correction against ground truth. The data is still synthetic. |
+| **Local eval harness.** 33/33 pass (Numbers 22/22, Extraction 9/9, Grounding 2/2). | The grounding and number-handling checks pass locally on each run. | This is a local harness; it is not third-party or external verification. |
+| **Dual-model AI-assisted review.** A second model (Codex) independently reviewed the repo, the test design, the local eval evidence, and the claim boundaries, external to the model-output generation path. | An independent second set of eyes, external to the preparer/output path, checked the design and the wording of the claims. | This is not a formal external or statutory audit, a certification, an assurance opinion, or a substitute for a human auditor. |
+
+dLocal is not affiliated with this project and did not endorse, sponsor, or review
+it. No non-public, internal, or confidential data was used; the exercise is
+illustrative.
+
 ## What is already production-grade (the design choices)
 
 These are not demo conveniences; they are how serious finance-AI must be built:
 
 | Choice in this repo | Why it holds up in production |
 |---|---|
-| **Numbers computed in code; the LLM only narrates** | No hallucinated figures. Every number is deterministic and traceable. This is the core safety property. |
+| **Numbers computed in code; the LLM only narrates** | No hallucinated figures. Every number is deterministic and traceable. This is the core safety property, and it is now checked against reality: the deterministic math ties 17 of 17 statement-level figures to dLocal's reported FY2024/FY2025 filings (17 PASS, 0 FAIL). |
 | **Read-only surface; the AI never posts to the ledger** | The safe posture. The AI assists, detects, and drafts — it does not move money or book entries. |
 | **Audit trail (append-only, timestamped)** | A governance and SOX requirement, present by design. |
 | **Deterministic cross-checks / reconciliations as gates** | Real controls that catch inconsistency before it reaches the board. |
@@ -31,9 +58,21 @@ These are not demo conveniences; they are how serious finance-AI must be built:
 
 1. **Data integration is ~80% of the project.** The hard part is never the
    agents — it is connecting the ERP, subledgers, bank feeds and warehouse;
-   account mappings, intercompany, multi-GAAP, and messy real data. This repo
-   runs on clean synthetic CSVs. In production, most of the effort and the risk
-   live in the data layer and its reliability.
+   account mappings, intercompany, multi-GAAP, and messy real data. Two things
+   are already proven, and one is not. The model has not only been run on pristine
+   data: it was stress-tested against four synthetic month-end datasets with
+   roughly 30 seeded errors each (sign flips, duplicated journals, 10x FX
+   overrides, missing accruals, mis-scoped reversals, maker-equals-checker
+   breaks). It detects the large majority of those traps; the recurring gap was
+   quantifying and classifying the adjustments against the ground-truth key, which
+   is precisely why a human checker stays in the loop. Separately, the
+   deterministic statement-level math now ties 17 of 17 figures to a real public
+   company (dLocal, NASDAQ: DLO) reported financials. What remains unproven is the
+   integration itself: the dLocal pass is statement-level, because no public filer
+   discloses transaction-level subledgers, so the transaction-level agents and the
+   multi-entity / multi-currency consolidation have not been validated on real
+   data. Real data is also messier than any seeded set, so in production most of
+   the effort and the risk still live in the data layer and its reliability.
 2. **Reliability at scale (AgentOps).** The eval harness here is the right idea,
    but a deployment needs regression suites on the real ledger, drift
    detection, monitoring, alerting and rollback.
@@ -88,5 +127,11 @@ The value is not "an autonomous CFO." It is a system that knows **where AI adds
 value today** (assist, detect, draft) and **where the human is non-negotiable**
 (judgment, approval, segregation of duties), built on the controls — determinism,
 audit trail, human gates — that let a CFO and an auditor actually trust it. The
+core accuracy claim is no longer just asserted: the deterministic statement-level
+math has been reconciled, 17 of 17, against a real public company's reported
+financials, stress-tested against adversarial synthetic traps, and reviewed by an
+independent second model. Those checks are statement-level and on public data
+only; they do not prove the whole operating model on real transaction-level data,
+and the integration work in the data layer remains the bulk of any deployment. The
 honest framing is *"a governed finance co-pilot,"* with a clear, engineering-only
 path from here to production.
