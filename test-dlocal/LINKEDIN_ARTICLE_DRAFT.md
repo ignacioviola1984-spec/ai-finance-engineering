@@ -21,6 +21,8 @@ A model that grades its own homework proves nothing. So I ran it the way an audi
 
 The model computed blind. It never saw the reported answers while it ran. A separate pass then compared its output to dLocal's reported numbers. And the ground truth was not my opinion or the model's. It was dLocal's audited financial statements, signed by their auditors.
 
+I also did not let a single AI be the only check. Claude Code built and ran the workflow; a second model, Codex, then independently reviewed the design, the evidence, and exactly what the test does and does not prove. Call it a dual-model review, external to the part that generates the numbers. It is AI-assisted, not a formal external audit, and it does not replace a human auditor.
+
 ## The result
 
 Seventeen checks. All seventeen tied to dLocal's reported figures, to the dollar.
@@ -56,6 +58,7 @@ The code is on GitHub: [your link]. Public data only, for noncommercial study. N
 ---
 
 Notes for you before posting:
-- Add the GitHub link, and consider a screenshot of the 17/17 PASS table (audit_result.csv) as the article image. The visual proof lands.
+- Add the GitHub link, and consider a screenshot of the 17/17 PASS table (run `py -3 test-dlocal\audit_dlocal_test.py`, or use audit_result.csv) as the article image. The visual proof lands.
+- The line about beating the guided range (volume and revenue) sits outside the 17-figure reconciliation. Verify it against dLocal's actual guidance versus reported results before posting, or drop it. The 17 of 17 tie-out stands on its own.
 - If you would rather post in Spanish, tell me and I translate keeping the same tone.
 - Optional first comment (drives reach): "Happy to walk through the method or the code. The honest part, what it cannot do yet, is in the post on purpose."
