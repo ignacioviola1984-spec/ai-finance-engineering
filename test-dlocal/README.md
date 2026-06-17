@@ -58,7 +58,6 @@ If you would rather be the auditor yourself: after either path, open model_outpu
 - AUDIT_EVIDENCE.md : the reproducibility and dual-model AI-assisted external audit evidence, with scope and claim boundaries.
 - 1_RUN_PROMPT.md / 2_AUDIT_PROMPT.md : the prompts for the AI-run path (the full multi-agent model running blind, then a separate audit chat).
 - LINKEDIN_ARTICLE_DRAFT.md : a draft write-up, for review, not published.
-- run_dlocal.py, audit_dlocal.py, audit_result.csv : earlier ad hoc versions from the first exploration, superseded by the deterministic _test.py scripts above.
 
 ## Sources (primary)
 

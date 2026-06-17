@@ -33,7 +33,6 @@ A few of them:
 - Adjusted EBITDA: 278.1M USD, rebuilt from the bottom up, matches.
 - The balance sheet balances both years: assets of 1,540.9M USD equal liabilities plus equity.
 - The model reconciles to the reported closing cash of 719.9M USD.
-- Against dLocal's own guidance, the year came in above the top of the guided range on volume and revenue.
 
 ## Why it held
 
@@ -58,7 +57,6 @@ The code is on GitHub: [your link]. Public data only, for noncommercial study. N
 ---
 
 Notes for you before posting:
-- Add the GitHub link, and consider a screenshot of the 17/17 PASS table (run `py -3 test-dlocal\audit_dlocal_test.py`, or use audit_result.csv) as the article image. The visual proof lands.
-- The line about beating the guided range (volume and revenue) sits outside the 17-figure reconciliation. Verify it against dLocal's actual guidance versus reported results before posting, or drop it. The 17 of 17 tie-out stands on its own.
+- Add the GitHub link, and consider a screenshot of the 17/17 PASS table (run `py -3 test-dlocal\audit_dlocal_test.py`) as the article image. The visual proof lands.
 - If you would rather post in Spanish, tell me and I translate keeping the same tone.
 - Optional first comment (drives reach): "Happy to walk through the method or the code. The honest part, what it cannot do yet, is in the post on purpose."
