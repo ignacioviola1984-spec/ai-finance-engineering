@@ -37,3 +37,5 @@ jobs:
 
       - name: O2C period comparison
         run: python run_o2c_control_tower.py --compare
+      - name: QuickBooks canonical source tests (offline, fixture)
+        run: python sources/tests/run_tests.py
