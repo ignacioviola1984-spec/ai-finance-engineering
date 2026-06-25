@@ -3,7 +3,7 @@ app.py - AI Finance Operating Model, public demo v2 (HR-friendly).
 
 Walks one synthetic finance function end to end, the way data actually flows:
   1. ERP            - pull data in from QuickBooks (read-only), land it in a
-                      vendor-neutral canonical layer, validate it, snapshot it.
+                      single standard format, validate it, save a sealed copy.
   2. O2C tower      - work the receivables: collections, cash application, DSO,
                       a hard-control gate that blocks reporting when it must.
   3. Month-end close- eight specialist agents turn it into the three statements
@@ -214,7 +214,7 @@ def render_overview():
             "- **Every number is computed by code** (deterministic, auditable). The AI agents "
             "read the numbers, reason, and write commentary - they never invent a figure. "
             "That is the core design rule.\n"
-            "- The engine reads a **vendor-neutral canonical layer**, so QuickBooks today and "
+            "- The engine reads **one standard format**, so QuickBooks today and "
             "NetSuite/SAP tomorrow plug in with zero engine changes.\n"
             "- **Human control is built in:** read-only ERP access, hard control gates that block "
             "reporting, maker-checker sign-off, an independent audit, and bounded self-improvement "
@@ -228,7 +228,7 @@ def render_overview():
     st.divider()
     st.markdown("##### The five stations")
     cards = [
-        ("1 · ERP - data in", "Pull from QuickBooks (read-only) into a canonical layer and "
+        ("1 · ERP - data in", "Pull from QuickBooks (read-only) into one standard format and "
          f"run {SOURCES['clean']['n_ok']}/{SOURCES['clean']['n_total']} validations."),
         ("2 · O2C control tower", "Collections, cash application, DSO, disputes, credit - "
          "with a hard gate that blocks reporting when controls fail."),
@@ -260,28 +260,29 @@ def render_overview():
 # ==========================================================================
 
 def render_erp():
-    section_title("1", "ERP - data in (swappable source → canonical layer)",
-                  "The engine never learns a vendor's object names. Any ERP maps into one "
-                  "<b>canonical layer</b>, gets validated, and is frozen as an immutable, "
-                  "hash-stamped snapshot before a single number is reported.")
+    section_title("1", "ERP - data in (any system → one standard format)",
+                  "The engine never has to learn each accounting system's own labels. Any system "
+                  "is translated into <b>one standard format</b>, checked against a set of rules, "
+                  "and saved as a <b>sealed, tamper-evident copy</b> before a single number is "
+                  "reported.")
 
     st.markdown(
         "<div class='flow card'>"
-        "<span class='pill'>QuickBooks Online · sandbox</span> ➜ "
-        "<span class='pill'>read-only adapter (OAuth2)</span> ➜ "
-        "<span class='pill'>map → canonical tables</span> ➜ "
+        "<span class='pill'>QuickBooks Online</span> ➜ "
+        "<span class='pill'>read-only connection</span> ➜ "
+        "<span class='pill'>translate → standard tables</span> ➜ "
         "<span class='pill'>validate</span> ➜ "
-        "<span class='pill'>sha256 snapshot</span> ➜ "
+        "<span class='pill'>sealed copy</span> ➜ "
         "<span class='pill'>engine</span></div>", unsafe_allow_html=True)
 
-    src = st.radio("Data source", ["QuickBooks Online (sandbox)", "Synthetic (Lumen)"],
+    src = st.radio("Data source", ["QuickBooks Online", "Synthetic (Lumen)"],
                    horizontal=True, key="erp_source")
 
     if src.startswith("QuickBooks"):
         st.markdown("#### What we pulled from QuickBooks (read-only)")
-        st.markdown("<span class='small'>One recorded sandbox extraction, mapped into the "
-                    "canonical chart. The API client has <b>no write method at all</b> - "
-                    "read-only is enforced in code, not just by scope.</span>",
+        st.markdown("<span class='small'>One recorded pull, translated into the standard chart of "
+                    "accounts. The connection has <b>no write capability at all</b> - read-only is "
+                    "enforced in code, not just by permission.</span>",
                     unsafe_allow_html=True)
         p = SOURCES["pnl"]; bs = SOURCES["balance_sheet"]; tb = SOURCES["trial_balance"]
         c = st.columns(4)
@@ -294,20 +295,17 @@ def render_erp():
 
         cc = st.columns(2)
         with cc[0]:
-            st.markdown("**Canonical balance sheet** (vendor-neutral)")
+            st.markdown("**Standardized balance sheet**")
             st.table([{"Account": r["account"], "USD": money(r["amount_usd"])}
                       for r in SOURCES["preview"]["balance_sheet"]])
         with cc[1]:
-            st.markdown("**Canonical chart of accounts** (12 rollup codes)")
+            st.markdown("**Standardized chart of accounts** (12 rollup codes)")
             st.table([{"Code": r["code"], "Account": r["account"], "Type": r["type"]}
                       for r in SOURCES["preview"]["chart_of_accounts"]])
-        honest("The QuickBooks sandbox is single-entity and USD-only, so budget and tax tables "
-               "are empty on this source and there is no multi-currency consolidation here. "
-               "That consolidation is exercised by the synthetic source (next toggle).")
     else:
         sc = SOURCES["synthetic_scale"]
         st.markdown("#### The synthetic source (Lumen Inc.) - the consolidation path")
-        st.markdown("<span class='small'>Identical canonical schema, but a multi-entity, "
+        st.markdown("<span class='small'>Identical standard format, but a multi-entity, "
                     "multi-currency company. This is what proves the swap: the engine code "
                     "does not change between sources.</span>", unsafe_allow_html=True)
         c = st.columns(4)
@@ -315,12 +313,12 @@ def render_erp():
         c[1].metric("Currencies", sc["currencies"])
         c[2].metric("FX rate rows", sc["fx_rate_rows"])
         c[3].metric("P&L activity rows", sc["pnl_rows"])
-        st.info("Same canonical tables, same column contract as the QuickBooks output - "
-                "byte-identical CSV headers. Swapping the source touches zero engine code.")
+        st.info("Same standard tables, same columns as the QuickBooks output - identical down to "
+                "the column headers. Swapping the source touches zero engine code.")
 
     st.divider()
-    st.markdown("#### Deterministic validations (model-free)")
-    st.markdown("<span class='small'>Before any number is trusted, the canonical data must pass "
+    st.markdown("#### Automated validations (no AI involved)")
+    st.markdown("<span class='small'>Before any number is trusted, the standardized data must pass "
                 f"all {SOURCES['clean']['n_total']} checks. These are plain code, not the model's "
                 "opinion.</span>", unsafe_allow_html=True)
 
@@ -349,20 +347,21 @@ def render_erp():
         st.success(f"All {SOURCES['clean']['n_total']} validations pass. The data is safe to report on.")
 
     st.divider()
-    st.markdown("#### Immutable snapshot (audit-grade)")
+    st.markdown("#### Sealed, tamper-evident copy (audit-grade)")
     m = SOURCES["manifest"]
     c = st.columns(4)
-    c[0].metric("Raw files hashed", m["n_raw_files"])
-    c[1].metric("Canonical files hashed", m["n_canonical_files"])
+    c[0].metric("Source files sealed", m["n_raw_files"])
+    c[1].metric("Standard files sealed", m["n_canonical_files"])
     c[2].metric("Validation", "PASS" if m["validation_pass"] else "FAIL")
-    c[3].metric("Extract timestamp (UTC)", m["extract_timestamp"][:10])
-    st.markdown("<span class='small'>Every extraction is frozen append-only with a manifest: "
-                "record counts, period, realm, UTC timestamp, and a <b>sha256 of every raw and "
-                "canonical file</b>. Re-running on the same input yields identical hashes - "
-                "reproducible and tamper-evident.</span>", unsafe_allow_html=True)
-    with st.expander("🔍 Sample manifest hashes (sha256)"):
+    c[3].metric("Saved at (UTC)", m["extract_timestamp"][:10])
+    st.markdown("<span class='small'>Every pull is saved as a sealed, append-only copy with a "
+                "record of what it contains: row counts, period, source, timestamp, and a "
+                "<b>digital fingerprint of every file</b>. Re-running on the same input produces "
+                "identical fingerprints - reproducible and tamper-evident.</span>",
+                unsafe_allow_html=True)
+    with st.expander("🔍 Sample digital fingerprints"):
         for k, v in m["sample_hashes"].items():
-            st.markdown(f"<span class='tiny'><code>{k}</code> → <code>{v}</code></span>",
+            st.markdown(f"<span class='tiny'><code>{k.split('/')[-1]}</code> → <code>{v}</code></span>",
                         unsafe_allow_html=True)
 
 
@@ -872,15 +871,15 @@ def render_selfimprove():
             st.success(f"Restored to {rb['after']} as a new version (history never rewritten).")
 
     with tabs[4]:
-        st.markdown("Every action is appended to an immutable audit trail.")
+        st.markdown("Every action is added to a permanent, append-only audit trail.")
         for e in SI["audit_trail"]:
             st.markdown(f"<span class='tiny'><code>{e['ts']}</code> · <b>{e['action']}</b> - "
                         f"{clean(e['detail'])}</span>", unsafe_allow_html=True)
 
-    honest("The trust boundary is the state file plus the audit trail: bounds are enforced on every "
-           "in-system write path, but hand-editing those files is out-of-band tampering (the same class "
-           "as editing the engine source) and outside the threat model. The trail is append-only by "
-           "file mode, not hash-chained.")
+    honest("The safety limits are enforced on every change the system makes. Directly hand-editing "
+           "the saved files would be tampering from outside the system - the same as editing the "
+           "source code - which is out of scope here. The audit trail can only be added to, never "
+           "rewritten.")
 
 
 # --------------------------------------------------------------------------

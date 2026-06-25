@@ -4,10 +4,10 @@ An HR-friendly, click-through demo of the whole `ai-finance-engineering` operati
 model. It follows one synthetic company's data through the full finance lifecycle,
 in five stations:
 
-1. **ERP - data in** · pull from QuickBooks Online (read-only) into a vendor-neutral
-   canonical layer, run 10 deterministic validations, freeze an sha256-stamped
-   immutable snapshot. Includes a "tamper a number, watch a named control fire" toggle
-   and a Synthetic ⇄ QuickBooks source swap.
+1. **ERP - data in** · pull from QuickBooks Online (read-only) into one standard format,
+   run 10/10 automated validations, save a sealed, tamper-evident copy with a digital
+   fingerprint of every file. Includes a "tamper a number, watch a named control fire"
+   toggle and a Synthetic ⇄ QuickBooks source swap.
 2. **O2C control tower** · the Order-to-Cash sub-orchestration. Toggle a broken month
    (blocked, adverse audit, DSO 169) against a clean one (passes, unqualified, DSO 55).
    DSO, unapplied cash, aging, a bookings→cash bridge, 25 controls, 35 metrics, 10 agents.
