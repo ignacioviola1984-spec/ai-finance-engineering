@@ -1,0 +1,1643 @@
+{
+ "2026-05": {
+  "period": "2026-05",
+  "final_status": "BLOCKED_HARD_CONTROLS",
+  "audit_opinion": "adverse",
+  "audit_score": 33.3,
+  "blocks_reporting": true,
+  "controls_summary": {
+   "total": 25,
+   "hard": 15,
+   "soft": 10,
+   "hard_failures": 14,
+   "soft_warnings": 6,
+   "pass_count": 4,
+   "pass_rate_pct": 16.0,
+   "hard_failure_ids": [
+    "A_CRM_CLOSED_WON_TO_CONTRACT",
+    "B_CONTRACT_TO_ORDER",
+    "C_ORDER_TO_BILLING_SCHEDULE",
+    "D_BILLING_COMPLETENESS",
+    "E_INVOICE_ACCURACY",
+    "F_PO_REQUIRED_CONTROL",
+    "G_INVOICE_DUPLICATE_CONTROL",
+    "H_AR_SUBLEDGER_COMPLETENESS",
+    "I_CASH_RECEIPT_TO_BANK",
+    "J_CASH_APPLICATION_COMPLETENESS",
+    "K_REVENUE_RECOGNITION_CUTOFF",
+    "L_DEFERRED_REVENUE_ROLLFORWARD",
+    "M_CREDIT_LIMIT_BREACH",
+    "N_CREDIT_HOLD_NEW_ORDER_BLOCK"
+   ]
+  },
+  "summary": {
+   "open_ar_usd": 24934089.69,
+   "current_ar_usd": 6455792.3,
+   "overdue_ar_usd": 18478297.39,
+   "ar_90_plus_usd": 9925820.57,
+   "dso": 169.0,
+   "best_possible_dso": 43.8,
+   "billing_completeness_pct": 98.82,
+   "unbilled_revenue_usd": 110014.04,
+   "revenue_leakage_usd": 110014.04,
+   "cash_application_rate_pct": 98.95,
+   "unapplied_cash_usd": 327249.59,
+   "disputed_ar_usd": 753424.39,
+   "disputed_ar_pct": 3.02,
+   "credit_exposure_usd": 27044291.97,
+   "credit_breach_amount_usd": 1490308.85,
+   "expected_cash_7d_usd": 17724873.0,
+   "expected_cash_30d_usd": 21777547.44,
+   "expected_cash_13w_usd": 24180665.3,
+   "bookings_usd": 7290700.0,
+   "billings_usd": 3968282.29,
+   "cash_collected_usd": 5995327.83
+  },
+  "aging": [
+   {
+    "aging_bucket": "current",
+    "open_ar_usd": 6455792.3,
+    "invoice_count": 105.0
+   },
+   {
+    "aging_bucket": "1-30",
+    "open_ar_usd": 2530801.52,
+    "invoice_count": 42.0
+   },
+   {
+    "aging_bucket": "31-60",
+    "open_ar_usd": 1269269.81,
+    "invoice_count": 31.0
+   },
+   {
+    "aging_bucket": "61-90",
+    "open_ar_usd": 4752405.49,
+    "invoice_count": 24.0
+   },
+   {
+    "aging_bucket": "91-120",
+    "open_ar_usd": 4284361.49,
+    "invoice_count": 10.0
+   },
+   {
+    "aging_bucket": "120+",
+    "open_ar_usd": 5641459.08,
+    "invoice_count": 69.0
+   }
+  ],
+  "bridge": [
+   [
+    "Bookings (contracts signed)",
+    7290700.0
+   ],
+   [
+    "Billings (invoiced)",
+    3968282.29
+   ],
+   [
+    "Recognized revenue",
+    4051335.81
+   ],
+   [
+    "Cash collected",
+    5995327.83
+   ]
+  ],
+  "controls": [
+   {
+    "control_id": "A_CRM_CLOSED_WON_TO_CONTRACT",
+    "name": "Closed-won opportunities tie to a contract",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Revenue Operations",
+    "failing_amount_usd": 1166000.0,
+    "failing_count": 8,
+    "blocks_reporting": true,
+    "action": "RevOps to create the missing contracts or close the opportunities.",
+    "description": "Every closed-won opportunity must convert to a contract or have a documented exception."
+   },
+   {
+    "control_id": "B_CONTRACT_TO_ORDER",
+    "name": "Active contracts tie to a sales order",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Revenue Operations",
+    "failing_amount_usd": 595100.0,
+    "failing_count": 9,
+    "blocks_reporting": true,
+    "action": "Provision the missing sales orders for the active contracts.",
+    "description": "Every active contract must convert to a sales order."
+   },
+   {
+    "control_id": "C_ORDER_TO_BILLING_SCHEDULE",
+    "name": "Active orders tie to a billing schedule",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 2869900.0,
+    "failing_count": 9,
+    "blocks_reporting": true,
+    "action": "Billing to build schedules for the unscheduled orders.",
+    "description": "Every active sales order must have a billing schedule so it gets invoiced."
+   },
+   {
+    "control_id": "D_BILLING_COMPLETENESS",
+    "name": "Scheduled billable amounts are invoiced",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 110014.04,
+    "failing_count": 12,
+    "blocks_reporting": true,
+    "action": "Invoice the unbilled lines; this is direct revenue leakage.",
+    "description": "Every scheduled, due line must be invoiced (invoice exists) or carry a valid billing block."
+   },
+   {
+    "control_id": "E_INVOICE_ACCURACY",
+    "name": "Invoice amount matches the scheduled bill amount",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 105329.88,
+    "failing_count": 19,
+    "blocks_reporting": true,
+    "action": "Re-bill or credit/rebill the mismatched invoices.",
+    "description": "Invoice amount must match the scheduled bill amount within tolerance."
+   },
+   {
+    "control_id": "F_PO_REQUIRED_CONTROL",
+    "name": "PO present where the customer requires one",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 4296521.19,
+    "failing_count": 42,
+    "blocks_reporting": true,
+    "action": "Obtain and attach the PO before the invoice is collectible.",
+    "description": "Customers that require a PO must have a PO number on the invoice."
+   },
+   {
+    "control_id": "G_INVOICE_DUPLICATE_CONTROL",
+    "name": "No duplicate invoices",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 55394.8,
+    "failing_count": 10,
+    "blocks_reporting": true,
+    "action": "Void the duplicate invoices and notify the affected customers.",
+    "description": "No duplicate invoice for the same customer / order / service period / amount."
+   },
+   {
+    "control_id": "H_AR_SUBLEDGER_COMPLETENESS",
+    "name": "AR subledger ties to the control balance",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Accounting",
+    "failing_amount_usd": 4175153.31,
+    "failing_count": 6,
+    "blocks_reporting": true,
+    "action": "Reconcile invoice status to the cash/credit transactions.",
+    "description": "Invoice totals minus credits and applications must tie to open AR by status."
+   },
+   {
+    "control_id": "I_CASH_RECEIPT_TO_BANK",
+    "name": "Payments tie to a bank receipt",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Cash Application",
+    "failing_amount_usd": 321196.4,
+    "failing_count": 8,
+    "blocks_reporting": true,
+    "action": "Match the payments to the bank statement or reverse them.",
+    "description": "Every recorded payment must tie to a bank receipt (proof of cash)."
+   },
+   {
+    "control_id": "J_CASH_APPLICATION_COMPLETENESS",
+    "name": "Bank receipts are applied or documented",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Cash Application",
+    "failing_amount_usd": 219453.26,
+    "failing_count": 5,
+    "blocks_reporting": true,
+    "action": "Apply the receipt to AR or document the unapplied reason.",
+    "description": "Every bank receipt must tie to a cash application with applied_amount > 0, or carry a documented unapplied reason. A zero-amount application is not valid."
+   },
+   {
+    "control_id": "K_REVENUE_RECOGNITION_CUTOFF",
+    "name": "Revenue recognized within service / contract terms",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Revenue Accounting",
+    "failing_amount_usd": 522525.01,
+    "failing_count": 9,
+    "blocks_reporting": true,
+    "action": "Reverse and re-recognize the out-of-period revenue.",
+    "description": "Recognized revenue must fall within the service period and contract term."
+   },
+   {
+    "control_id": "L_DEFERRED_REVENUE_ROLLFORWARD",
+    "name": "Deferred revenue rollforward foots",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Revenue Accounting",
+    "failing_amount_usd": 11005.0,
+    "failing_count": 6,
+    "blocks_reporting": true,
+    "action": "Investigate and correct the deferred revenue rollforward breaks.",
+    "description": "opening + billings - recognized + adjustments + fx must equal closing deferred."
+   },
+   {
+    "control_id": "M_CREDIT_LIMIT_BREACH",
+    "name": "Exposure within the approved credit limit",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Credit & Commercial Finance",
+    "failing_amount_usd": 1490308.85,
+    "failing_count": 11,
+    "blocks_reporting": true,
+    "action": "Place on hold or obtain a documented credit-limit override.",
+    "description": "Customer exposure must not exceed the approved credit limit unless approved."
+   },
+   {
+    "control_id": "N_CREDIT_HOLD_NEW_ORDER_BLOCK",
+    "name": "No active orders for customers on credit hold",
+    "severity": "HARD",
+    "status": "FAIL",
+    "owner": "Credit & Commercial Finance",
+    "failing_amount_usd": 3909600.0,
+    "failing_count": 23,
+    "blocks_reporting": true,
+    "action": "Block or cancel the orders pending credit release.",
+    "description": "Customers on credit hold must not have active (new) sales orders."
+   },
+   {
+    "control_id": "O_DISPUTE_COLLECTION_BLOCK",
+    "name": "Disputed cash is routed out of collections",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Credit & Disputes",
+    "failing_amount_usd": 753424.39,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Route disputed AR to the owner team; exclude from cash targets.",
+    "description": "Disputed (cash-blocked) invoices must be excluded from the cash forecast and owned."
+   },
+   {
+    "control_id": "S1_BILLING_TIMELINESS",
+    "name": "Billing timeliness",
+    "severity": "SOFT",
+    "status": "PASS",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 30,
+    "blocks_reporting": false,
+    "action": "Accelerate the late invoices to protect DSO.",
+    "description": "On-time billing 95.52% vs 90.0% target."
+   },
+   {
+    "control_id": "S2_HIGH_DSO",
+    "name": "DSO above target",
+    "severity": "SOFT",
+    "status": "CRITICAL",
+    "owner": "Collections",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Prioritize collections on the oldest, largest balances.",
+    "description": "DSO 169.0 days (best possible 43.8)."
+   },
+   {
+    "control_id": "S3_AGING_CONCENTRATION",
+    "name": "Aged AR concentration",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Collections",
+    "failing_amount_usd": 9925820.57,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Escalate the 90+ balances; assess reserve adequacy.",
+    "description": "39.8% of open AR is 90+ days (limit 25.0%)."
+   },
+   {
+    "control_id": "S4_BROKEN_PROMISE",
+    "name": "Broken promises to pay",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Collections",
+    "failing_amount_usd": 1601852.37,
+    "failing_count": 41,
+    "blocks_reporting": false,
+    "action": "Re-engage and escalate broken promises.",
+    "description": "41 promises to pay are past due and unpaid."
+   },
+   {
+    "control_id": "S5_HIGH_UNAPPLIED_CASH",
+    "name": "Unapplied cash",
+    "severity": "SOFT",
+    "status": "PASS",
+    "owner": "Cash Application",
+    "failing_amount_usd": 327249.59,
+    "failing_count": 14,
+    "blocks_reporting": false,
+    "action": "Clear unapplied cash to recognize true collections.",
+    "description": "Unapplied cash is 1.0% of receipts (limit 5.0%)."
+   },
+   {
+    "control_id": "S6_HIGH_DISPUTE_RATE",
+    "name": "Dispute rate",
+    "severity": "SOFT",
+    "status": "PASS",
+    "owner": "Credit & Disputes",
+    "failing_amount_usd": 753424.39,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Drive root-cause fixes on the top dispute reasons.",
+    "description": "Disputed AR is 3.02% of open AR (limit 8.0%)."
+   },
+   {
+    "control_id": "S7_MANUAL_CREDIT_MEMO_RATE",
+    "name": "Manual credit memo rate",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 1127491.7,
+    "failing_count": 76,
+    "blocks_reporting": false,
+    "action": "Investigate credit-memo drivers (pricing, billing errors).",
+    "description": "Credit memos are 11.2% of invoices (limit 10.0%)."
+   },
+   {
+    "control_id": "S8_NON_STANDARD_TERMS",
+    "name": "Non-standard payment terms",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Revenue Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 1,
+    "blocks_reporting": false,
+    "action": "Review non-standard terms for cash-flow and policy alignment.",
+    "description": "1 customers are on non-standard payment terms."
+   },
+   {
+    "control_id": "S9_STALE_CREDIT_REVIEW",
+    "name": "Stale customer credit review",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Credit & Commercial Finance",
+    "failing_amount_usd": 0.0,
+    "failing_count": 7,
+    "blocks_reporting": false,
+    "action": "Schedule overdue credit reviews.",
+    "description": "7 customers have a credit review older than 365 days."
+   },
+   {
+    "control_id": "S10_FX_GAIN_LOSS",
+    "name": "FX gain/loss on cash application",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Cash Application",
+    "failing_amount_usd": 41585.87,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Review FX policy and revaluation on multi-currency receipts.",
+    "description": "Absolute FX gain/loss on applications is 41585.87 (limit 10000.0)."
+   }
+  ],
+  "metrics": [
+   {
+    "name": "bookings_amount",
+    "value": 7290700.0,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Operations",
+    "threshold": "informational",
+    "definition": "Total contract value signed in the period."
+   },
+   {
+    "name": "contracted_arr",
+    "value": 3287999.99,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Operations",
+    "threshold": "informational",
+    "definition": "Annual recurring revenue contracted in the period."
+   },
+   {
+    "name": "order_amount",
+    "value": 84535100.01,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Operations",
+    "threshold": "informational",
+    "definition": "Open active sales-order value (order book)."
+   },
+   {
+    "name": "scheduled_billings",
+    "value": 51369171.28,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": "informational",
+    "definition": "Scheduled, due, billable amount for the period."
+   },
+   {
+    "name": "actual_billings",
+    "value": 3968282.29,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": "informational",
+    "definition": "Amount invoiced in the period."
+   },
+   {
+    "name": "recognized_revenue",
+    "value": 4051335.81,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Accounting",
+    "threshold": "informational",
+    "definition": "Revenue recognized in the period."
+   },
+   {
+    "name": "deferred_revenue_ending",
+    "value": 2439860.7,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Accounting",
+    "threshold": "informational",
+    "definition": "Deferred revenue balance at period end."
+   },
+   {
+    "name": "open_ar",
+    "value": 24934089.69,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "Total open accounts receivable."
+   },
+   {
+    "name": "current_ar",
+    "value": 6455792.3,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR not yet past due."
+   },
+   {
+    "name": "overdue_ar",
+    "value": 18478297.39,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR past its due date."
+   },
+   {
+    "name": "ar_30",
+    "value": 2530801.52,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR 1-30 days past due."
+   },
+   {
+    "name": "ar_60",
+    "value": 1269269.81,
+    "unit": "USD",
+    "status": "REVIEW",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR 31-60 days past due."
+   },
+   {
+    "name": "ar_90",
+    "value": 4752405.49,
+    "unit": "USD",
+    "status": "URGENT",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR 61-90 days past due."
+   },
+   {
+    "name": "ar_120_plus",
+    "value": 9925820.57,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR 90+ days past due (91-120 plus 120+)."
+   },
+   {
+    "name": "dso",
+    "value": 169.0,
+    "unit": "days",
+    "status": "CRITICAL",
+    "owner": "Collections",
+    "threshold": "warn 45.0 / urgent 60.0 / crit 75.0",
+    "definition": "Days sales outstanding (trailing-3-month basis)."
+   },
+   {
+    "name": "best_possible_dso",
+    "value": 43.8,
+    "unit": "days",
+    "status": "OK",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "DSO if only current AR were outstanding."
+   },
+   {
+    "name": "collection_effectiveness_index",
+    "value": 24.5,
+    "unit": "%",
+    "status": "CRITICAL",
+    "owner": "Collections",
+    "threshold": ">= 80% good",
+    "definition": "Collected / (collected + still-overdue), period proxy."
+   },
+   {
+    "name": "billing_completeness_pct",
+    "value": 98.82,
+    "unit": "%",
+    "status": "REVIEW",
+    "owner": "Billing Operations",
+    "threshold": ">= 99%",
+    "definition": "Invoiced vs scheduled-and-due billable amount."
+   },
+   {
+    "name": "billing_timeliness_pct",
+    "value": 95.52,
+    "unit": "%",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": ">= 90.0%",
+    "definition": "Invoices issued within the allowed delay."
+   },
+   {
+    "name": "invoice_accuracy_pct",
+    "value": 97.16,
+    "unit": "%",
+    "status": "REVIEW",
+    "owner": "Billing Operations",
+    "threshold": ">= 99%",
+    "definition": "Invoices matching the scheduled bill amount."
+   },
+   {
+    "name": "unbilled_revenue_amount",
+    "value": 110014.04,
+    "unit": "USD",
+    "status": "URGENT",
+    "owner": "Billing Operations",
+    "threshold": "<= 25000 USD",
+    "definition": "Scheduled billable amount not yet invoiced."
+   },
+   {
+    "name": "revenue_leakage_estimate",
+    "value": 110014.04,
+    "unit": "USD",
+    "status": "URGENT",
+    "owner": "Billing Operations",
+    "threshold": "<= 25000 USD",
+    "definition": "Estimated revenue lost to unbilled work."
+   },
+   {
+    "name": "disputed_ar_amount",
+    "value": 753424.39,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Credit & Commercial Finance",
+    "threshold": "informational",
+    "definition": "Open AR under dispute (cash-blocked)."
+   },
+   {
+    "name": "disputed_ar_pct",
+    "value": 3.02,
+    "unit": "%",
+    "status": "OK",
+    "owner": "Credit & Commercial Finance",
+    "threshold": "<= 8.0%",
+    "definition": "Disputed AR as a share of open AR."
+   },
+   {
+    "name": "unapplied_cash_amount",
+    "value": 327249.59,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Cash Application / Treasury",
+    "threshold": "informational",
+    "definition": "Cash received but not applied to AR."
+   },
+   {
+    "name": "cash_application_rate",
+    "value": 98.95,
+    "unit": "%",
+    "status": "OK",
+    "owner": "Cash Application / Treasury",
+    "threshold": ">= 95.0%",
+    "definition": "Cash applied vs cash received."
+   },
+   {
+    "name": "credit_hold_exposure",
+    "value": 1551934.2,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Credit & Commercial Finance",
+    "threshold": "informational",
+    "definition": "Exposure on customers flagged credit-hold."
+   },
+   {
+    "name": "credit_limit_breach_amount",
+    "value": 1490308.85,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Credit & Commercial Finance",
+    "threshold": "0 USD (hard control)",
+    "definition": "Exposure above approved credit limits."
+   },
+   {
+    "name": "broken_promise_amount",
+    "value": 1601852.37,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "Promised amounts past due and unpaid."
+   },
+   {
+    "name": "expected_cash_7d",
+    "value": 17724873.0,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Cash Application / Treasury",
+    "threshold": "informational",
+    "definition": "Expected collections in 7 days (non-disputed)."
+   },
+   {
+    "name": "expected_cash_30d",
+    "value": 21777547.44,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Cash Application / Treasury",
+    "threshold": "informational",
+    "definition": "Expected collections in 30 days (non-disputed)."
+   },
+   {
+    "name": "expected_cash_13w",
+    "value": 24180665.3,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Cash Application / Treasury",
+    "threshold": "informational",
+    "definition": "Expected collections in 13 weeks (non-disputed)."
+   },
+   {
+    "name": "o2c_control_pass_rate",
+    "value": 16.0,
+    "unit": "%",
+    "status": "CRITICAL",
+    "owner": "Internal Controls",
+    "threshold": ">= 95%",
+    "definition": "Share of O2C controls passing."
+   },
+   {
+    "name": "hard_control_failure_count",
+    "value": 14.0,
+    "unit": "count",
+    "status": "CRITICAL",
+    "owner": "Internal Controls",
+    "threshold": 0.0,
+    "definition": "Number of hard controls failing (blocks reporting)."
+   },
+   {
+    "name": "soft_warning_count",
+    "value": 6.0,
+    "unit": "count",
+    "status": "REVIEW",
+    "owner": "Internal Controls",
+    "threshold": "informational",
+    "definition": "Number of soft controls in warning."
+   }
+  ],
+  "top_issues": [
+   {
+    "agent": "BillingAgent",
+    "severity": "CRITICAL",
+    "message": "USD 110,014 unbilled revenue (12 lines): direct leakage"
+   },
+   {
+    "agent": "CollectionsAgent",
+    "severity": "CRITICAL",
+    "message": "DSO 169.0 days vs best-possible 43.8 (target < 45)"
+   },
+   {
+    "agent": "DisputesCreditAgent",
+    "severity": "CRITICAL",
+    "message": "11 customers over credit limit (USD 1,490,309 above approved)"
+   },
+   {
+    "agent": "O2CAuditAgent",
+    "severity": "CRITICAL",
+    "message": "O2C audit opinion: ADVERSE - 14 hard control(s) fail; reporting is blocked"
+   },
+   {
+    "agent": "OrderIntakeAgent",
+    "severity": "HIGH",
+    "message": "8 closed-won opportunities (USD 1,166,000) have no contract"
+   },
+   {
+    "agent": "OrderIntakeAgent",
+    "severity": "HIGH",
+    "message": "9 active contracts (USD 595,100) have no sales order"
+   },
+   {
+    "agent": "CustomerMasterAgent",
+    "severity": "HIGH",
+    "message": "8 credit-hold customers have active orders"
+   },
+   {
+    "agent": "BillingAgent",
+    "severity": "HIGH",
+    "message": "19 invoices do not match the scheduled amount (USD 105,330)"
+   },
+   {
+    "agent": "BillingAgent",
+    "severity": "HIGH",
+    "message": "10 invoices look like duplicates"
+   },
+   {
+    "agent": "RevenueRecognitionAgent",
+    "severity": "HIGH",
+    "message": "9 revenue cutoff exceptions (USD 522,525)"
+   }
+  ],
+  "severity_counts": {
+   "CRITICAL": 4,
+   "HIGH": 10,
+   "MEDIUM": 4
+  },
+  "agents": [
+   {
+    "name": "OrderIntakeAgent",
+    "headline": "8 not contracted, 9 not ordered, 17 order blocks"
+   },
+   {
+    "name": "CustomerMasterAgent",
+    "headline": "27 master-data items to remediate"
+   },
+   {
+    "name": "ContractAgent",
+    "headline": "35 non-standard, 5 expiring, 0 invalid periods"
+   },
+   {
+    "name": "BillingAgent",
+    "headline": "USD 110,014 leakage, 19 mismatches, 10 duplicates"
+   },
+   {
+    "name": "RevenueRecognitionAgent",
+    "headline": "9 cutoff, 6 rollforward breaks"
+   },
+   {
+    "name": "CollectionsAgent",
+    "headline": "DSO 169.0d, USD 18,478,297 overdue, expected 13w USD 24,180,665"
+   },
+   {
+    "name": "CashApplicationAgent",
+    "headline": "app rate 98.95%, USD 327,250 unapplied, tie OK"
+   },
+   {
+    "name": "DisputesCreditAgent",
+    "headline": "11 credit breaches, 23 hold violations, USD 545,945 cash blocked"
+   },
+   {
+    "name": "RevOpsAnalyticsAgent",
+    "headline": "Bookings USD 7,290,700 -> billings USD 3,968,282 -> revenue USD 4,051,336 -> cash USD 5,995,328"
+   },
+   {
+    "name": "O2CAuditAgent",
+    "headline": "audit opinion ADVERSE, score 33.3%, 14 blockers"
+   }
+  ],
+  "input_record_counts": {
+   "customers": 125,
+   "opportunities": 566,
+   "contracts": 306,
+   "orders": 248,
+   "billing": 911,
+   "invoices": 676,
+   "credit_memos": 76,
+   "payments": 429,
+   "bank_receipts": 421,
+   "cash_application": 421,
+   "revenue": 986,
+   "deferred": 844,
+   "collections": 350,
+   "disputes": 110,
+   "credit_limits": 187
+  },
+  "n_agents": 10
+ },
+ "2026-06": {
+  "period": "2026-06",
+  "final_status": "PASS_WITH_WARNINGS",
+  "audit_opinion": "unqualified",
+  "audit_score": 100.0,
+  "blocks_reporting": false,
+  "controls_summary": {
+   "total": 25,
+   "hard": 15,
+   "soft": 10,
+   "hard_failures": 0,
+   "soft_warnings": 4,
+   "pass_count": 20,
+   "pass_rate_pct": 80.0,
+   "hard_failure_ids": []
+  },
+  "summary": {
+   "open_ar_usd": 10096915.91,
+   "current_ar_usd": 7779428.02,
+   "overdue_ar_usd": 2317487.89,
+   "ar_90_plus_usd": 874816.74,
+   "dso": 55.4,
+   "best_possible_dso": 42.7,
+   "billing_completeness_pct": 100.0,
+   "unbilled_revenue_usd": 0.0,
+   "revenue_leakage_usd": 0.0,
+   "cash_application_rate_pct": 99.66,
+   "unapplied_cash_usd": 202948.9,
+   "disputed_ar_usd": 192971.04,
+   "disputed_ar_pct": 1.91,
+   "credit_exposure_usd": 10096915.93,
+   "credit_breach_amount_usd": 0.0,
+   "expected_cash_7d_usd": 2124516.85,
+   "expected_cash_30d_usd": 8940214.52,
+   "expected_cash_13w_usd": 9903944.87,
+   "bookings_usd": 9358700.01,
+   "billings_usd": 7312304.2,
+   "cash_collected_usd": 8118749.14
+  },
+  "aging": [
+   {
+    "aging_bucket": "current",
+    "open_ar_usd": 7779428.02,
+    "invoice_count": 118.0
+   },
+   {
+    "aging_bucket": "1-30",
+    "open_ar_usd": 1080498.37,
+    "invoice_count": 20.0
+   },
+   {
+    "aging_bucket": "31-60",
+    "open_ar_usd": 79943.2,
+    "invoice_count": 4.0
+   },
+   {
+    "aging_bucket": "61-90",
+    "open_ar_usd": 282229.58,
+    "invoice_count": 7.0
+   },
+   {
+    "aging_bucket": "91-120",
+    "open_ar_usd": 144855.88,
+    "invoice_count": 4.0
+   },
+   {
+    "aging_bucket": "120+",
+    "open_ar_usd": 729960.86,
+    "invoice_count": 27.0
+   }
+  ],
+  "bridge": [
+   [
+    "Bookings (contracts signed)",
+    9358700.01
+   ],
+   [
+    "Billings (invoiced)",
+    7312304.2
+   ],
+   [
+    "Recognized revenue",
+    7155845.87
+   ],
+   [
+    "Cash collected",
+    8118749.14
+   ]
+  ],
+  "controls": [
+   {
+    "control_id": "A_CRM_CLOSED_WON_TO_CONTRACT",
+    "name": "Closed-won opportunities tie to a contract",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Revenue Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "RevOps to create the missing contracts or close the opportunities.",
+    "description": "Every closed-won opportunity must convert to a contract or have a documented exception."
+   },
+   {
+    "control_id": "B_CONTRACT_TO_ORDER",
+    "name": "Active contracts tie to a sales order",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Revenue Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Provision the missing sales orders for the active contracts.",
+    "description": "Every active contract must convert to a sales order."
+   },
+   {
+    "control_id": "C_ORDER_TO_BILLING_SCHEDULE",
+    "name": "Active orders tie to a billing schedule",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Billing to build schedules for the unscheduled orders.",
+    "description": "Every active sales order must have a billing schedule so it gets invoiced."
+   },
+   {
+    "control_id": "D_BILLING_COMPLETENESS",
+    "name": "Scheduled billable amounts are invoiced",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Invoice the unbilled lines; this is direct revenue leakage.",
+    "description": "Every scheduled, due line must be invoiced (invoice exists) or carry a valid billing block."
+   },
+   {
+    "control_id": "E_INVOICE_ACCURACY",
+    "name": "Invoice amount matches the scheduled bill amount",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Re-bill or credit/rebill the mismatched invoices.",
+    "description": "Invoice amount must match the scheduled bill amount within tolerance."
+   },
+   {
+    "control_id": "F_PO_REQUIRED_CONTROL",
+    "name": "PO present where the customer requires one",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Obtain and attach the PO before the invoice is collectible.",
+    "description": "Customers that require a PO must have a PO number on the invoice."
+   },
+   {
+    "control_id": "G_INVOICE_DUPLICATE_CONTROL",
+    "name": "No duplicate invoices",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Void the duplicate invoices and notify the affected customers.",
+    "description": "No duplicate invoice for the same customer / order / service period / amount."
+   },
+   {
+    "control_id": "H_AR_SUBLEDGER_COMPLETENESS",
+    "name": "AR subledger ties to the control balance",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Accounting",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Reconcile invoice status to the cash/credit transactions.",
+    "description": "Invoice totals minus credits and applications must tie to open AR by status."
+   },
+   {
+    "control_id": "I_CASH_RECEIPT_TO_BANK",
+    "name": "Payments tie to a bank receipt",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Cash Application",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Match the payments to the bank statement or reverse them.",
+    "description": "Every recorded payment must tie to a bank receipt (proof of cash)."
+   },
+   {
+    "control_id": "J_CASH_APPLICATION_COMPLETENESS",
+    "name": "Bank receipts are applied or documented",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Cash Application",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Apply the receipt to AR or document the unapplied reason.",
+    "description": "Every bank receipt must tie to a cash application with applied_amount > 0, or carry a documented unapplied reason. A zero-amount application is not valid."
+   },
+   {
+    "control_id": "K_REVENUE_RECOGNITION_CUTOFF",
+    "name": "Revenue recognized within service / contract terms",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Revenue Accounting",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Reverse and re-recognize the out-of-period revenue.",
+    "description": "Recognized revenue must fall within the service period and contract term."
+   },
+   {
+    "control_id": "L_DEFERRED_REVENUE_ROLLFORWARD",
+    "name": "Deferred revenue rollforward foots",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Revenue Accounting",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Investigate and correct the deferred revenue rollforward breaks.",
+    "description": "opening + billings - recognized + adjustments + fx must equal closing deferred."
+   },
+   {
+    "control_id": "M_CREDIT_LIMIT_BREACH",
+    "name": "Exposure within the approved credit limit",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Credit & Commercial Finance",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Place on hold or obtain a documented credit-limit override.",
+    "description": "Customer exposure must not exceed the approved credit limit unless approved."
+   },
+   {
+    "control_id": "N_CREDIT_HOLD_NEW_ORDER_BLOCK",
+    "name": "No active orders for customers on credit hold",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Credit & Commercial Finance",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Block or cancel the orders pending credit release.",
+    "description": "Customers on credit hold must not have active (new) sales orders."
+   },
+   {
+    "control_id": "O_DISPUTE_COLLECTION_BLOCK",
+    "name": "Disputed cash is routed out of collections",
+    "severity": "HARD",
+    "status": "PASS",
+    "owner": "Credit & Disputes",
+    "failing_amount_usd": 192971.04,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Route disputed AR to the owner team; exclude from cash targets.",
+    "description": "Disputed (cash-blocked) invoices must be excluded from the cash forecast and owned."
+   },
+   {
+    "control_id": "S1_BILLING_TIMELINESS",
+    "name": "Billing timeliness",
+    "severity": "SOFT",
+    "status": "PASS",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Accelerate the late invoices to protect DSO.",
+    "description": "On-time billing 100.0% vs 90.0% target."
+   },
+   {
+    "control_id": "S2_HIGH_DSO",
+    "name": "DSO above target",
+    "severity": "SOFT",
+    "status": "REVIEW",
+    "owner": "Collections",
+    "failing_amount_usd": 0.0,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Prioritize collections on the oldest, largest balances.",
+    "description": "DSO 55.4 days (best possible 42.7)."
+   },
+   {
+    "control_id": "S3_AGING_CONCENTRATION",
+    "name": "Aged AR concentration",
+    "severity": "SOFT",
+    "status": "PASS",
+    "owner": "Collections",
+    "failing_amount_usd": 874816.74,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Escalate the 90+ balances; assess reserve adequacy.",
+    "description": "8.7% of open AR is 90+ days (limit 25.0%)."
+   },
+   {
+    "control_id": "S4_BROKEN_PROMISE",
+    "name": "Broken promises to pay",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Collections",
+    "failing_amount_usd": 402730.54,
+    "failing_count": 16,
+    "blocks_reporting": false,
+    "action": "Re-engage and escalate broken promises.",
+    "description": "16 promises to pay are past due and unpaid."
+   },
+   {
+    "control_id": "S5_HIGH_UNAPPLIED_CASH",
+    "name": "Unapplied cash",
+    "severity": "SOFT",
+    "status": "PASS",
+    "owner": "Cash Application",
+    "failing_amount_usd": 202948.9,
+    "failing_count": 4,
+    "blocks_reporting": false,
+    "action": "Clear unapplied cash to recognize true collections.",
+    "description": "Unapplied cash is 0.3% of receipts (limit 5.0%)."
+   },
+   {
+    "control_id": "S6_HIGH_DISPUTE_RATE",
+    "name": "Dispute rate",
+    "severity": "SOFT",
+    "status": "PASS",
+    "owner": "Credit & Disputes",
+    "failing_amount_usd": 192971.04,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Drive root-cause fixes on the top dispute reasons.",
+    "description": "Disputed AR is 1.91% of open AR (limit 8.0%)."
+   },
+   {
+    "control_id": "S7_MANUAL_CREDIT_MEMO_RATE",
+    "name": "Manual credit memo rate",
+    "severity": "SOFT",
+    "status": "PASS",
+    "owner": "Billing Operations",
+    "failing_amount_usd": 506426.63,
+    "failing_count": 40,
+    "blocks_reporting": false,
+    "action": "Investigate credit-memo drivers (pricing, billing errors).",
+    "description": "Credit memos are 4.5% of invoices (limit 10.0%)."
+   },
+   {
+    "control_id": "S8_NON_STANDARD_TERMS",
+    "name": "Non-standard payment terms",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Revenue Operations",
+    "failing_amount_usd": 0.0,
+    "failing_count": 6,
+    "blocks_reporting": false,
+    "action": "Review non-standard terms for cash-flow and policy alignment.",
+    "description": "6 customers are on non-standard payment terms."
+   },
+   {
+    "control_id": "S9_STALE_CREDIT_REVIEW",
+    "name": "Stale customer credit review",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Credit & Commercial Finance",
+    "failing_amount_usd": 0.0,
+    "failing_count": 7,
+    "blocks_reporting": false,
+    "action": "Schedule overdue credit reviews.",
+    "description": "7 customers have a credit review older than 365 days."
+   },
+   {
+    "control_id": "S10_FX_GAIN_LOSS",
+    "name": "FX gain/loss on cash application",
+    "severity": "SOFT",
+    "status": "WARNING",
+    "owner": "Cash Application",
+    "failing_amount_usd": 128960.86,
+    "failing_count": 0,
+    "blocks_reporting": false,
+    "action": "Review FX policy and revaluation on multi-currency receipts.",
+    "description": "Absolute FX gain/loss on applications is 128960.86 (limit 10000.0)."
+   }
+  ],
+  "metrics": [
+   {
+    "name": "bookings_amount",
+    "value": 9358700.01,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Operations",
+    "threshold": "informational",
+    "definition": "Total contract value signed in the period."
+   },
+   {
+    "name": "contracted_arr",
+    "value": 5587900.0,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Operations",
+    "threshold": "informational",
+    "definition": "Annual recurring revenue contracted in the period."
+   },
+   {
+    "name": "order_amount",
+    "value": 94574099.97,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Operations",
+    "threshold": "informational",
+    "definition": "Open active sales-order value (order book)."
+   },
+   {
+    "name": "scheduled_billings",
+    "value": 65408654.68,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": "informational",
+    "definition": "Scheduled, due, billable amount for the period."
+   },
+   {
+    "name": "actual_billings",
+    "value": 7312304.2,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": "informational",
+    "definition": "Amount invoiced in the period."
+   },
+   {
+    "name": "recognized_revenue",
+    "value": 7155845.87,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Accounting",
+    "threshold": "informational",
+    "definition": "Revenue recognized in the period."
+   },
+   {
+    "name": "deferred_revenue_ending",
+    "value": 0.0,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Revenue Accounting",
+    "threshold": "informational",
+    "definition": "Deferred revenue balance at period end."
+   },
+   {
+    "name": "open_ar",
+    "value": 10096915.91,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "Total open accounts receivable."
+   },
+   {
+    "name": "current_ar",
+    "value": 7779428.02,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR not yet past due."
+   },
+   {
+    "name": "overdue_ar",
+    "value": 2317487.89,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR past its due date."
+   },
+   {
+    "name": "ar_30",
+    "value": 1080498.37,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR 1-30 days past due."
+   },
+   {
+    "name": "ar_60",
+    "value": 79943.2,
+    "unit": "USD",
+    "status": "REVIEW",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR 31-60 days past due."
+   },
+   {
+    "name": "ar_90",
+    "value": 282229.58,
+    "unit": "USD",
+    "status": "URGENT",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR 61-90 days past due."
+   },
+   {
+    "name": "ar_120_plus",
+    "value": 874816.74,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "AR 90+ days past due (91-120 plus 120+)."
+   },
+   {
+    "name": "dso",
+    "value": 55.4,
+    "unit": "days",
+    "status": "REVIEW",
+    "owner": "Collections",
+    "threshold": "warn 45.0 / urgent 60.0 / crit 75.0",
+    "definition": "Days sales outstanding (trailing-3-month basis)."
+   },
+   {
+    "name": "best_possible_dso",
+    "value": 42.7,
+    "unit": "days",
+    "status": "OK",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "DSO if only current AR were outstanding."
+   },
+   {
+    "name": "collection_effectiveness_index",
+    "value": 77.8,
+    "unit": "%",
+    "status": "REVIEW",
+    "owner": "Collections",
+    "threshold": ">= 80% good",
+    "definition": "Collected / (collected + still-overdue), period proxy."
+   },
+   {
+    "name": "billing_completeness_pct",
+    "value": 100.0,
+    "unit": "%",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": ">= 99%",
+    "definition": "Invoiced vs scheduled-and-due billable amount."
+   },
+   {
+    "name": "billing_timeliness_pct",
+    "value": 100.0,
+    "unit": "%",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": ">= 90.0%",
+    "definition": "Invoices issued within the allowed delay."
+   },
+   {
+    "name": "invoice_accuracy_pct",
+    "value": 100.0,
+    "unit": "%",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": ">= 99%",
+    "definition": "Invoices matching the scheduled bill amount."
+   },
+   {
+    "name": "unbilled_revenue_amount",
+    "value": 0.0,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": "<= 25000 USD",
+    "definition": "Scheduled billable amount not yet invoiced."
+   },
+   {
+    "name": "revenue_leakage_estimate",
+    "value": 0.0,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Billing Operations",
+    "threshold": "<= 25000 USD",
+    "definition": "Estimated revenue lost to unbilled work."
+   },
+   {
+    "name": "disputed_ar_amount",
+    "value": 192971.04,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Credit & Commercial Finance",
+    "threshold": "informational",
+    "definition": "Open AR under dispute (cash-blocked)."
+   },
+   {
+    "name": "disputed_ar_pct",
+    "value": 1.91,
+    "unit": "%",
+    "status": "OK",
+    "owner": "Credit & Commercial Finance",
+    "threshold": "<= 8.0%",
+    "definition": "Disputed AR as a share of open AR."
+   },
+   {
+    "name": "unapplied_cash_amount",
+    "value": 202948.9,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Cash Application / Treasury",
+    "threshold": "informational",
+    "definition": "Cash received but not applied to AR."
+   },
+   {
+    "name": "cash_application_rate",
+    "value": 99.66,
+    "unit": "%",
+    "status": "OK",
+    "owner": "Cash Application / Treasury",
+    "threshold": ">= 95.0%",
+    "definition": "Cash applied vs cash received."
+   },
+   {
+    "name": "credit_hold_exposure",
+    "value": 0.0,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Credit & Commercial Finance",
+    "threshold": "informational",
+    "definition": "Exposure on customers flagged credit-hold."
+   },
+   {
+    "name": "credit_limit_breach_amount",
+    "value": 0.0,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Credit & Commercial Finance",
+    "threshold": "0 USD (hard control)",
+    "definition": "Exposure above approved credit limits."
+   },
+   {
+    "name": "broken_promise_amount",
+    "value": 402730.54,
+    "unit": "USD",
+    "status": "CRITICAL",
+    "owner": "Collections",
+    "threshold": "informational",
+    "definition": "Promised amounts past due and unpaid."
+   },
+   {
+    "name": "expected_cash_7d",
+    "value": 2124516.85,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Cash Application / Treasury",
+    "threshold": "informational",
+    "definition": "Expected collections in 7 days (non-disputed)."
+   },
+   {
+    "name": "expected_cash_30d",
+    "value": 8940214.52,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Cash Application / Treasury",
+    "threshold": "informational",
+    "definition": "Expected collections in 30 days (non-disputed)."
+   },
+   {
+    "name": "expected_cash_13w",
+    "value": 9903944.87,
+    "unit": "USD",
+    "status": "OK",
+    "owner": "Cash Application / Treasury",
+    "threshold": "informational",
+    "definition": "Expected collections in 13 weeks (non-disputed)."
+   },
+   {
+    "name": "o2c_control_pass_rate",
+    "value": 80.0,
+    "unit": "%",
+    "status": "REVIEW",
+    "owner": "Internal Controls",
+    "threshold": ">= 95%",
+    "definition": "Share of O2C controls passing."
+   },
+   {
+    "name": "hard_control_failure_count",
+    "value": 0.0,
+    "unit": "count",
+    "status": "OK",
+    "owner": "Internal Controls",
+    "threshold": 0.0,
+    "definition": "Number of hard controls failing (blocks reporting)."
+   },
+   {
+    "name": "soft_warning_count",
+    "value": 4.0,
+    "unit": "count",
+    "status": "REVIEW",
+    "owner": "Internal Controls",
+    "threshold": "informational",
+    "definition": "Number of soft controls in warning."
+   }
+  ],
+  "top_issues": [
+   {
+    "agent": "CollectionsAgent",
+    "severity": "HIGH",
+    "message": "16 broken promises to pay (USD 402,731)"
+   },
+   {
+    "agent": "CashApplicationAgent",
+    "severity": "HIGH",
+    "message": "USD 202,949 unapplied cash across 4 items"
+   },
+   {
+    "agent": "CustomerMasterAgent",
+    "severity": "MEDIUM",
+    "message": "16 churned/suspended customers still have active contracts"
+   },
+   {
+    "agent": "ContractAgent",
+    "severity": "MEDIUM",
+    "message": "7 active contracts (USD 3,546,700 ARR) expire within 90 days without auto-renew"
+   },
+   {
+    "agent": "CashApplicationAgent",
+    "severity": "MEDIUM",
+    "message": "4 bank receipts not applied to AR"
+   }
+  ],
+  "severity_counts": {
+   "HIGH": 2,
+   "MEDIUM": 3
+  },
+  "agents": [
+   {
+    "name": "OrderIntakeAgent",
+    "headline": "0 not contracted, 0 not ordered, 21 order blocks"
+   },
+   {
+    "name": "CustomerMasterAgent",
+    "headline": "16 master-data items to remediate"
+   },
+   {
+    "name": "ContractAgent",
+    "headline": "36 non-standard, 7 expiring, 0 invalid periods"
+   },
+   {
+    "name": "BillingAgent",
+    "headline": "USD 0 leakage, 0 mismatches, 0 duplicates"
+   },
+   {
+    "name": "RevenueRecognitionAgent",
+    "headline": "0 cutoff, 0 rollforward breaks"
+   },
+   {
+    "name": "CollectionsAgent",
+    "headline": "DSO 55.4d, USD 2,317,488 overdue, expected 13w USD 9,903,945"
+   },
+   {
+    "name": "CashApplicationAgent",
+    "headline": "app rate 99.66%, USD 202,949 unapplied, tie OK"
+   },
+   {
+    "name": "DisputesCreditAgent",
+    "headline": "0 credit breaches, 0 hold violations, USD 129,702 cash blocked"
+   },
+   {
+    "name": "RevOpsAnalyticsAgent",
+    "headline": "Bookings USD 9,358,700 -> billings USD 7,312,304 -> revenue USD 7,155,846 -> cash USD 8,118,749"
+   },
+   {
+    "name": "O2CAuditAgent",
+    "headline": "audit opinion UNQUALIFIED, score 100.0%, 0 blockers"
+   }
+  ],
+  "input_record_counts": {
+   "customers": 125,
+   "opportunities": 564,
+   "contracts": 318,
+   "orders": 271,
+   "billing": 1156,
+   "invoices": 891,
+   "credit_memos": 40,
+   "payments": 715,
+   "bank_receipts": 715,
+   "cash_application": 715,
+   "revenue": 1132,
+   "deferred": 922,
+   "collections": 121,
+   "disputes": 30,
+   "credit_limits": 187
+  },
+  "n_agents": 10
+ }
+}

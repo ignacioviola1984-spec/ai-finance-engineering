@@ -1,0 +1,154 @@
+{
+ "params": [
+  {
+   "name": "ar_collection_rate",
+   "value": 0.9,
+   "min": 0.8,
+   "max": 0.98,
+   "max_step": 0.03,
+   "cooldown": 1,
+   "owner": "Treasurer",
+   "metric": "realized collections / forecast collections"
+  },
+  {
+   "name": "materiality_pct_threshold",
+   "value": 5.0,
+   "min": 2.0,
+   "max": 10.0,
+   "max_step": 1.0,
+   "cooldown": 1,
+   "owner": "Controller",
+   "metric": "escalation precision/recall on labeled outcomes"
+  },
+  {
+   "name": "materiality_usd_threshold",
+   "value": 20000.0,
+   "min": 5000.0,
+   "max": 50000.0,
+   "max_step": 5000.0,
+   "cooldown": 1,
+   "owner": "Controller",
+   "metric": "escalation precision/recall on labeled outcomes"
+  },
+  {
+   "name": "approval_threshold_usd",
+   "value": 25000.0,
+   "min": 10000.0,
+   "max": 50000.0,
+   "max_step": 5000.0,
+   "cooldown": 1,
+   "owner": "Internal Controls",
+   "metric": "share of flagged disbursements that needed review"
+  }
+ ],
+ "accept": {
+  "param": "ar_collection_rate",
+  "old": 0.9,
+  "proposed": 0.92,
+  "evidence": {
+   "n_periods": 4,
+   "forecast_collectible_total": 4200000.0,
+   "actual_collected_total": 3864000.0,
+   "realized_rate": 0.92,
+   "raw_candidate": 0.92,
+   "clamped": false,
+   "bounds": [
+    0.8,
+    0.98
+   ],
+   "max_step": 0.03
+  },
+  "rationale": "Statistical calibration of 'ar_collection_rate' over the outcomes window proposes to raise it from 0.9 to 0.92. Metric: realized collections / forecast collections. Evidence: {'n_periods': 4, 'forecast_collectible_total': 4200000.0, 'actual_collected_total': 3864000.0, 'realized_rate': 0.92, 'raw_candidate': 0.92, 'clamped': False, 'bounds': [0.8, 0.98], 'max_step': 0.03}. The number is computed deterministically from the data; this text only explains it.",
+  "approver": "Treasurer",
+  "ok": true,
+  "eval": {
+   "baseline": [
+    22,
+    22
+   ],
+   "candidate": [
+    22,
+    22
+   ]
+  },
+  "backtest": {
+   "metric_old": -84000.0,
+   "metric_new": -0.0
+  },
+  "new_version": 2
+ },
+ "reject_out_of_bounds": {
+  "param": "ar_collection_rate",
+  "old": 0.92,
+  "proposed": 1.05,
+  "bounds": [
+   0.8,
+   0.98
+  ],
+  "approver": "Treasurer",
+  "ok": false,
+  "reasons": [
+   "out of bounds: 1.05 not in [0.8, 0.98]",
+   "exceeds max_step 0.03 from 0.92"
+  ],
+  "champion_after": 0.92
+ },
+ "reject_eval_regression": {
+  "param": "materiality_usd_threshold",
+  "old": 20000.0,
+  "proposed": 25000.0,
+  "approver": "Controller",
+  "ok": false,
+  "reasons": [
+   "eval regression: candidate 21/22 vs baseline 22/22"
+  ],
+  "champion_after": 20000.0
+ },
+ "rollback": {
+  "param": "ar_collection_rate",
+  "before": 0.92,
+  "after": 0.9,
+  "result": {
+   "ok": true,
+   "value": 0.9,
+   "new_version": 3
+  }
+ },
+ "audit_trail": [
+  {
+   "ts": "2026-06-25T18:27:53",
+   "action": "proposed",
+   "detail": "ar_collection_rate: 0.9 -> 0.92"
+  },
+  {
+   "ts": "2026-06-25T18:27:53",
+   "action": "approved",
+   "detail": "ar_collection_rate 0.9->0.92 (v2) by Treasurer"
+  },
+  {
+   "ts": "2026-06-25T18:27:53",
+   "action": "proposed",
+   "detail": "ar_collection_rate: 0.92 -> 1.05 (injected)"
+  },
+  {
+   "ts": "2026-06-25T18:27:53",
+   "action": "approval_rejected",
+   "detail": "ar_collection_rate 0.92->1.05 rejected: ['out of bounds: 1.05 not in [0.8, 0.98]', 'exceeds max_step 0.03 from 0.92']"
+  },
+  {
+   "ts": "2026-06-25T18:27:53",
+   "action": "proposed",
+   "detail": "materiality_usd_threshold: 20000.0 -> 25000.0 (injected)"
+  },
+  {
+   "ts": "2026-06-25T18:27:53",
+   "action": "approval_rejected",
+   "detail": "materiality_usd_threshold 20000.0->25000.0 rejected: ['eval regression: candidate 21/22 vs baseline 22/22']"
+  },
+  {
+   "ts": "2026-06-25T18:27:53",
+   "action": "rollback",
+   "detail": "ar_collection_rate restored to v1 value 0.9 (now v3) by Treasurer"
+  }
+ ]
+}

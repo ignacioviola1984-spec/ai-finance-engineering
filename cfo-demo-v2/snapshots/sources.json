@@ -1,0 +1,514 @@
+{
+ "period": "2026-05",
+ "entity": "QuickBooks Sandbox Co.",
+ "realm": "sandbox",
+ "pnl": {
+  "revenue": 50000.0,
+  "cogs": 18000.0,
+  "sm": 5000.0,
+  "rd": 8000.0,
+  "ga": 12000.0,
+  "operating_income": 7000.0
+ },
+ "balance_sheet": {
+  "cash": 80000.0,
+  "ar": 30000.0,
+  "fixed": 20000.0,
+  "ap": 15000.0,
+  "deferred": 10000.0,
+  "paid_in": 50000.0,
+  "retained": 55000.0,
+  "total_assets": 130000.0,
+  "total_liabilities": 25000.0,
+  "total_equity": 105000.0,
+  "check": 0.0
+ },
+ "trial_balance": {
+  "debits": 173000.0,
+  "credits": 173000.0
+ },
+ "clean": {
+  "pass": true,
+  "n_ok": 10,
+  "n_total": 10,
+  "checks": [
+   {
+    "name": "records:entities",
+    "ok": true,
+    "detail": "1 rows"
+   },
+   {
+    "name": "records:chart_of_accounts",
+    "ok": true,
+    "detail": "12 rows"
+   },
+   {
+    "name": "records:pnl_activity",
+    "ok": true,
+    "detail": "5 rows"
+   },
+   {
+    "name": "records:balance_sheet",
+    "ok": true,
+    "detail": "7 rows"
+   },
+   {
+    "name": "balance_sheet_foots",
+    "ok": true,
+    "detail": "A 130,000.00 - (L 25,000.00 + E 105,000.00) = 0.00"
+   },
+   {
+    "name": "trial_balance_balances",
+    "ok": true,
+    "detail": "debits 173,000.00 vs credits 173,000.00"
+   },
+   {
+    "name": "ar_subledger_ties_to_control",
+    "ok": true,
+    "detail": "open AR 30,000.00 vs control(1100) 30,000.00"
+   },
+   {
+    "name": "pnl_balance_consistent",
+    "ok": true,
+    "detail": "rev 50,000, cogs 18,000, opex 25,000, assets 130,000"
+   },
+   {
+    "name": "no_future_dated_postings",
+    "ok": true,
+    "detail": "none"
+   },
+   {
+    "name": "currency_present_and_known",
+    "ok": true,
+    "detail": "all USD"
+   }
+  ],
+  "broken": [],
+  "record_counts": {
+   "entities": 1,
+   "fx_rates": 1,
+   "chart_of_accounts": 12,
+   "pnl_activity": 5,
+   "balance_sheet": 7,
+   "budget": 0,
+   "ar_invoices": 4,
+   "ap_invoices": 3,
+   "tax_obligations": 0,
+   "trial_balance": 12,
+   "payments": 2,
+   "customers": 3,
+   "vendors": 2,
+   "journal_entries": 2
+  }
+ },
+ "tampers": [
+  {
+   "key": "cash",
+   "label": "Set Balance Sheet cash to 999,999",
+   "fires": "balance_sheet_foots",
+   "owner": "Internal Controls",
+   "pass": false,
+   "n_ok": 9,
+   "n_total": 10,
+   "checks": [
+    {
+     "name": "records:entities",
+     "ok": true,
+     "detail": "1 rows"
+    },
+    {
+     "name": "records:chart_of_accounts",
+     "ok": true,
+     "detail": "12 rows"
+    },
+    {
+     "name": "records:pnl_activity",
+     "ok": true,
+     "detail": "5 rows"
+    },
+    {
+     "name": "records:balance_sheet",
+     "ok": true,
+     "detail": "7 rows"
+    },
+    {
+     "name": "balance_sheet_foots",
+     "ok": false,
+     "detail": "A 1,049,999.00 - (L 25,000.00 + E 105,000.00) = 919,999.00"
+    },
+    {
+     "name": "trial_balance_balances",
+     "ok": true,
+     "detail": "debits 173,000.00 vs credits 173,000.00"
+    },
+    {
+     "name": "ar_subledger_ties_to_control",
+     "ok": true,
+     "detail": "open AR 30,000.00 vs control(1100) 30,000.00"
+    },
+    {
+     "name": "pnl_balance_consistent",
+     "ok": true,
+     "detail": "rev 50,000, cogs 18,000, opex 25,000, assets 1,049,999"
+    },
+    {
+     "name": "no_future_dated_postings",
+     "ok": true,
+     "detail": "none"
+    },
+    {
+     "name": "currency_present_and_known",
+     "ok": true,
+     "detail": "all USD"
+    }
+   ],
+   "broken": [
+    "balance_sheet_foots"
+   ],
+   "record_counts": {
+    "entities": 1,
+    "fx_rates": 1,
+    "chart_of_accounts": 12,
+    "pnl_activity": 5,
+    "balance_sheet": 7,
+    "budget": 0,
+    "ar_invoices": 4,
+    "ap_invoices": 3,
+    "tax_obligations": 0,
+    "trial_balance": 12,
+    "payments": 2,
+    "customers": 3,
+    "vendors": 2,
+    "journal_entries": 2
+   }
+  },
+  {
+   "key": "eur",
+   "label": "Post an invoice in EUR (an unknown currency)",
+   "fires": "currency_present_and_known",
+   "owner": "Controller",
+   "pass": false,
+   "n_ok": 9,
+   "n_total": 10,
+   "checks": [
+    {
+     "name": "records:entities",
+     "ok": true,
+     "detail": "1 rows"
+    },
+    {
+     "name": "records:chart_of_accounts",
+     "ok": true,
+     "detail": "12 rows"
+    },
+    {
+     "name": "records:pnl_activity",
+     "ok": true,
+     "detail": "5 rows"
+    },
+    {
+     "name": "records:balance_sheet",
+     "ok": true,
+     "detail": "7 rows"
+    },
+    {
+     "name": "balance_sheet_foots",
+     "ok": true,
+     "detail": "A 130,000.00 - (L 25,000.00 + E 105,000.00) = 0.00"
+    },
+    {
+     "name": "trial_balance_balances",
+     "ok": true,
+     "detail": "debits 173,000.00 vs credits 173,000.00"
+    },
+    {
+     "name": "ar_subledger_ties_to_control",
+     "ok": true,
+     "detail": "open AR 30,000.00 vs control(1100) 30,000.00"
+    },
+    {
+     "name": "pnl_balance_consistent",
+     "ok": true,
+     "detail": "rev 50,000, cogs 18,000, opex 25,000, assets 130,000"
+    },
+    {
+     "name": "no_future_dated_postings",
+     "ok": true,
+     "detail": "none"
+    },
+    {
+     "name": "currency_present_and_known",
+     "ok": false,
+     "detail": "1 bad: [\"ar_invoices:'EUR'\"]"
+    }
+   ],
+   "broken": [
+    "currency_present_and_known"
+   ],
+   "record_counts": {
+    "entities": 1,
+    "fx_rates": 1,
+    "chart_of_accounts": 12,
+    "pnl_activity": 5,
+    "balance_sheet": 7,
+    "budget": 0,
+    "ar_invoices": 4,
+    "ap_invoices": 3,
+    "tax_obligations": 0,
+    "trial_balance": 12,
+    "payments": 2,
+    "customers": 3,
+    "vendors": 2,
+    "journal_entries": 2
+   }
+  },
+  {
+   "key": "future",
+   "label": "Post an invoice dated 2026-09 (a future period)",
+   "fires": "no_future_dated_postings",
+   "owner": "Controller",
+   "pass": false,
+   "n_ok": 8,
+   "n_total": 10,
+   "checks": [
+    {
+     "name": "records:entities",
+     "ok": true,
+     "detail": "1 rows"
+    },
+    {
+     "name": "records:chart_of_accounts",
+     "ok": true,
+     "detail": "12 rows"
+    },
+    {
+     "name": "records:pnl_activity",
+     "ok": true,
+     "detail": "5 rows"
+    },
+    {
+     "name": "records:balance_sheet",
+     "ok": true,
+     "detail": "7 rows"
+    },
+    {
+     "name": "balance_sheet_foots",
+     "ok": true,
+     "detail": "A 130,000.00 - (L 25,000.00 + E 105,000.00) = 0.00"
+    },
+    {
+     "name": "trial_balance_balances",
+     "ok": true,
+     "detail": "debits 173,000.00 vs credits 173,000.00"
+    },
+    {
+     "name": "ar_subledger_ties_to_control",
+     "ok": false,
+     "detail": "open AR 35,000.00 vs control(1100) 30,000.00"
+    },
+    {
+     "name": "pnl_balance_consistent",
+     "ok": true,
+     "detail": "rev 50,000, cogs 18,000, opex 25,000, assets 130,000"
+    },
+    {
+     "name": "no_future_dated_postings",
+     "ok": false,
+     "detail": "1 future-dated: ['INV-FUTURE']"
+    },
+    {
+     "name": "currency_present_and_known",
+     "ok": true,
+     "detail": "all USD"
+    }
+   ],
+   "broken": [
+    "ar_subledger_ties_to_control",
+    "no_future_dated_postings"
+   ],
+   "record_counts": {
+    "entities": 1,
+    "fx_rates": 1,
+    "chart_of_accounts": 12,
+    "pnl_activity": 5,
+    "balance_sheet": 7,
+    "budget": 0,
+    "ar_invoices": 5,
+    "ap_invoices": 3,
+    "tax_obligations": 0,
+    "trial_balance": 12,
+    "payments": 2,
+    "customers": 3,
+    "vendors": 2,
+    "journal_entries": 2
+   }
+  }
+ ],
+ "manifest": {
+  "realm_id": "sandbox",
+  "period": "2026-05",
+  "extract_timestamp": "2026-05-31T12:00:00+00:00",
+  "n_raw_files": 10,
+  "n_canonical_files": 14,
+  "record_counts": {
+   "entities": 1,
+   "fx_rates": 1,
+   "chart_of_accounts": 12,
+   "pnl_activity": 5,
+   "balance_sheet": 7,
+   "budget": 0,
+   "ar_invoices": 4,
+   "ap_invoices": 3,
+   "tax_obligations": 0,
+   "trial_balance": 12,
+   "payments": 2,
+   "customers": 3,
+   "vendors": 2,
+   "journal_entries": 2
+  },
+  "validation_pass": true,
+  "sample_hashes": {
+   "raw/profit_and_loss.json": "a9c505f5c8fe2d6e15da99f870c21291dad34be91165e3560b0d6aa87ee92738",
+   "canonical/pnl_activity.csv": "7bd5a15597bb5671e2ce0e97900a932ec083aa6a43881f2589181eb77851ed8b",
+   "canonical/balance_sheet.csv": "f78d45ef60be21dac0470e93db365ff1c4fcbb5acb7e635b88d43521eb09d1ad"
+  }
+ },
+ "preview": {
+  "balance_sheet": [
+   {
+    "code": "1000",
+    "account": "Cash and equivalents",
+    "amount_usd": 80000.0
+   },
+   {
+    "code": "1100",
+    "account": "Accounts receivable",
+    "amount_usd": 30000.0
+   },
+   {
+    "code": "1500",
+    "account": "Fixed assets, net",
+    "amount_usd": 20000.0
+   },
+   {
+    "code": "2000",
+    "account": "Accounts payable",
+    "amount_usd": 15000.0
+   },
+   {
+    "code": "2500",
+    "account": "Deferred revenue",
+    "amount_usd": 10000.0
+   },
+   {
+    "code": "3000",
+    "account": "Paid-in capital",
+    "amount_usd": 50000.0
+   },
+   {
+    "code": "3900",
+    "account": "Retained earnings",
+    "amount_usd": 55000.0
+   }
+  ],
+  "ar_invoices": [
+   {
+    "invoice_id": "INV-1",
+    "customer": "Amy's Bird Sanctuary",
+    "amount_usd": 12000.0,
+    "status": "open",
+    "due_date": "2026-06-04"
+   },
+   {
+    "invoice_id": "INV-2",
+    "customer": "Bill's Windsurf Shop",
+    "amount_usd": 10000.0,
+    "status": "open",
+    "due_date": "2026-06-09"
+   },
+   {
+    "invoice_id": "INV-3",
+    "customer": "Cool Cars",
+    "amount_usd": 8000.0,
+    "status": "open",
+    "due_date": "2026-05-30"
+   },
+   {
+    "invoice_id": "INV-4",
+    "customer": "Amy's Bird Sanctuary",
+    "amount_usd": 5000.0,
+    "status": "paid",
+    "due_date": "2026-06-01"
+   }
+  ],
+  "chart_of_accounts": [
+   {
+    "code": "1000",
+    "account": "Cash and equivalents",
+    "type": "Asset"
+   },
+   {
+    "code": "1100",
+    "account": "Accounts receivable",
+    "type": "Asset"
+   },
+   {
+    "code": "1500",
+    "account": "Fixed assets, net",
+    "type": "Asset"
+   },
+   {
+    "code": "2000",
+    "account": "Accounts payable",
+    "type": "Liability"
+   },
+   {
+    "code": "2500",
+    "account": "Deferred revenue",
+    "type": "Liability"
+   },
+   {
+    "code": "3000",
+    "account": "Paid-in capital",
+    "type": "Equity"
+   },
+   {
+    "code": "3900",
+    "account": "Retained earnings",
+    "type": "Equity"
+   },
+   {
+    "code": "4000",
+    "account": "Revenue",
+    "type": "Revenue"
+   },
+   {
+    "code": "5000",
+    "account": "Cost of revenue",
+    "type": "Expense"
+   },
+   {
+    "code": "6000",
+    "account": "Sales & marketing",
+    "type": "Expense"
+   },
+   {
+    "code": "6100",
+    "account": "Research & development",
+    "type": "Expense"
+   },
+   {
+    "code": "6200",
+    "account": "General & admin",
+    "type": "Expense"
+   }
+  ]
+ },
+ "synthetic_scale": {
+  "entities": 6,
+  "fx_rate_rows": 30,
+  "pnl_rows": 150,
+  "ar_invoices": 100,
+  "currencies": 6
+ }
+}
