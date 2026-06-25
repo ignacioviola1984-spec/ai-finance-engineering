@@ -32,6 +32,27 @@ audit trail, and a hard gate that blocks reporting.
 
 ![Agentic architecture: a single CFO orchestrator coordinating the month-end close, the Order-to-Cash control tower (a sub-orchestration), and the bounded self-improvement loop under one governance layer of deterministic numbers, maker/checker sign-off, an audit trail, and a hard gate that blocks reporting.](docs/agentic-architecture.png)
 
+### Data sources (swappable)
+
+The engine reads a **canonical layer**, never a vendor's objects. Any source maps
+into the same canonical contract (the columns `finance_core` already reads), so
+swapping sources never touches the engine. QuickBooks Online (sandbox) is wired
+today; NetSuite / SAP / Odoo / Zoho would each be one more `SourceConnector`. See
+[`sources/`](sources/README.md).
+
+```mermaid
+flowchart LR
+  QBO["QuickBooks Online · sandbox"] -->|"read-only adapter · OAuth2"| MAP["Mapper · QuickBooks to canonical"]
+  SYN["Synthetic · Lumen"] --> CANON
+  MAP --> CANON
+  NEXT["NetSuite / SAP / Odoo / Zoho · future"] -.-> CANON
+  CANON["Canonical tables · same columns as the engine CSVs"]
+  CANON --> VAL["Validate · balance foots · AR ties · no future postings"]
+  VAL --> SNAP["Immutable snapshot · raw + canonical + manifest · sha256"]
+  CANON --> ENGINE["finance_core · CFO and O2C engine"]
+  CANON --> MCP["Source-agnostic MCP tools"]
+```
+
 ## Projects
 
 ### Finance MCP Connector (`finance-mcp/`)
