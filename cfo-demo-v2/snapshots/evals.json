@@ -1,0 +1,320 @@
+{
+ "numbers": {
+  "passed": 22,
+  "total": 22,
+  "checks": [
+   {
+    "label": "operating income 2026-05 - esperado ~-756,823, obtenido -756,823",
+    "ok": true
+   },
+   {
+    "label": "cash consolidado - esperado ~7,504,278, obtenido 7,504,278",
+    "ok": true
+   },
+   {
+    "label": "AR vencida > 90% - obtenido 97%",
+    "ok": true
+   },
+   {
+    "label": "varianza operating income - esperado ~-38,938, obtenido -38,938",
+    "ok": true
+   },
+   {
+    "label": "varianza G&A - esperado ~20,935, obtenido 20,935",
+    "ok": true
+   },
+   {
+    "label": "lineas materiales vs presupuesto - esperado 2, obtenido 2",
+    "ok": true
+   },
+   {
+    "label": "run-rate (ARR proxy) - esperado ~14,856,124.00, obtenido 14,856,124.11",
+    "ok": true
+   },
+   {
+    "label": "burn multiple - esperado ~11.62, obtenido 11.62",
+    "ok": true
+   },
+   {
+    "label": "Rule of 40 - esperado ~42.40, obtenido 42.42",
+    "ok": true
+   },
+   {
+    "label": "overdue payables (AP) - esperado ~416,764, obtenido 416,764",
+    "ok": true
+   },
+   {
+    "label": "overdue tax - esperado ~118,496, obtenido 118,496",
+    "ok": true
+   },
+   {
+    "label": "13-week ending cash - esperado ~5,551,607, obtenido 5,551,607",
+    "ok": true
+   },
+   {
+    "label": "13-week cash stays positive - week_negative=None",
+    "ok": true
+   },
+   {
+    "label": "books balance (trial balance) - max imbalance USD 0.01",
+    "ok": true
+   },
+   {
+    "label": "no control failures (integrity) - esperado 0, obtenido 0",
+    "ok": true
+   },
+   {
+    "label": "disbursement authorization exceptions - esperado 6, obtenido 6",
+    "ok": true
+   },
+   {
+    "label": "authorization exceptions total - esperado ~217,269, obtenido 217,269",
+    "ok": true
+   },
+   {
+    "label": "close reconciles (subledgers tie to GL) - open items 0, articulation TIED",
+    "ok": true
+   },
+   {
+    "label": "reporting net income - esperado ~-756,823, obtenido -756,823",
+    "ok": true
+   },
+   {
+    "label": "balance sheet foots (A = L + E) - check USD 0.01",
+    "ok": true
+   },
+   {
+    "label": "cash flow ties to change in cash - statement -649,371 vs actual -649,371",
+    "ok": true
+   },
+   {
+    "label": "audit opinion unqualified - opinion unqualified, 0 exception(s)",
+    "ok": true
+   }
+  ]
+ },
+ "safety": {
+  "passed": 12,
+  "total": 12,
+  "tests": [
+   {
+    "name": "audit trail records everything",
+    "desc": "audit trail records everything"
+   },
+   {
+    "name": "cooldown respected",
+    "desc": "cooldown respected"
+   },
+   {
+    "name": "empty outcomes blocked",
+    "desc": "empty outcomes blocked"
+   },
+   {
+    "name": "eval regression rejected despite human",
+    "desc": "eval regression rejected despite human"
+   },
+   {
+    "name": "frozen parameter cannot change",
+    "desc": "frozen parameter cannot change"
+   },
+   {
+    "name": "max step clamped or rejected",
+    "desc": "max step clamped or rejected"
+   },
+   {
+    "name": "out of bounds rejected",
+    "desc": "out of bounds rejected"
+   },
+   {
+    "name": "propose only no auto adopt",
+    "desc": "propose only no auto adopt"
+   },
+   {
+    "name": "rollback restores exact value",
+    "desc": "rollback restores exact value"
+   },
+   {
+    "name": "system cannot change its own bounds",
+    "desc": "system cannot change its own bounds"
+   },
+   {
+    "name": "system cannot flip auto adopt",
+    "desc": "system cannot flip auto adopt"
+   },
+   {
+    "name": "tamper fails",
+    "desc": "tamper fails"
+   }
+  ]
+ },
+ "dlocal": {
+  "passed": 17,
+  "total": 17,
+  "rows": [
+   {
+    "key": "gross_profit_fy2025",
+    "model": 402756.0,
+    "expected": 402756.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "operating_profit_fy2025",
+    "model": 219915.0,
+    "expected": 219915.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "profit_before_tax_fy2025",
+    "model": 228654.0,
+    "expected": 228654.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "net_income_fy2025",
+    "model": 196902.0,
+    "expected": 196902.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "net_income_fy2024",
+    "model": 120469.0,
+    "expected": 120469.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "adjusted_ebitda_fy2025",
+    "model": 278078.0,
+    "expected": 278078.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "total_assets_fy2025",
+    "model": 1540964.0,
+    "expected": 1540964.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "total_assets_fy2024",
+    "model": 1171329.0,
+    "expected": 1171329.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "total_liabilities_fy2025",
+    "model": 971535.0,
+    "expected": 971535.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "total_equity_fy2025",
+    "model": 569429.0,
+    "expected": 569429.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "closing_cash_fy2025",
+    "model": 719897.0,
+    "expected": 719897.0,
+    "delta": 0.0,
+    "unit": "USD_000",
+    "status": "PASS"
+   },
+   {
+    "key": "gross_margin_fy2025_pct",
+    "model": 36.8,
+    "expected": 36.8,
+    "delta": 0.0,
+    "unit": "pct",
+    "status": "PASS"
+   },
+   {
+    "key": "net_margin_fy2025_pct",
+    "model": 18.0,
+    "expected": 18.0,
+    "delta": 0.0,
+    "unit": "pct",
+    "status": "PASS"
+   },
+   {
+    "key": "adjusted_ebitda_margin_fy2025_pct",
+    "model": 25.4,
+    "expected": 25.4,
+    "delta": 0.0,
+    "unit": "pct",
+    "status": "PASS"
+   },
+   {
+    "key": "revenue_growth_yoy_pct",
+    "model": 46.6,
+    "expected": 46.6,
+    "delta": 0.0,
+    "unit": "pct",
+    "status": "PASS"
+   },
+   {
+    "key": "gross_profit_growth_yoy_pct",
+    "model": 36.7,
+    "expected": 36.7,
+    "delta": 0.0,
+    "unit": "pct",
+    "status": "PASS"
+   },
+   {
+    "key": "net_income_growth_yoy_pct",
+    "model": 63.4,
+    "expected": 63.4,
+    "delta": 0.0,
+    "unit": "pct",
+    "status": "PASS"
+   }
+  ],
+  "headline": {
+   "net_income_fy2025": 196902.0,
+   "adjusted_ebitda_fy2025": 278078.0,
+   "revenue_growth_pct": 46.6,
+   "total_assets_fy2025": 1540964.0
+  }
+ },
+ "o2c_suite": {
+  "passed": 48,
+  "total": 48,
+  "ok": true
+ },
+ "o2c_blind": {
+  "planted": 10,
+  "caught": 10,
+  "hard_failure_ids": [
+   "A_CRM_CLOSED_WON_TO_CONTRACT",
+   "B_CONTRACT_TO_ORDER",
+   "C_ORDER_TO_BILLING_SCHEDULE",
+   "D_BILLING_COMPLETENESS",
+   "E_INVOICE_ACCURACY",
+   "F_PO_REQUIRED_CONTROL",
+   "G_INVOICE_DUPLICATE_CONTROL",
+   "I_CASH_RECEIPT_TO_BANK",
+   "J_CASH_APPLICATION_COMPLETENESS",
+   "K_REVENUE_RECOGNITION_CUTOFF"
+  ],
+  "final_status": "BLOCKED_HARD_CONTROLS"
+ }
+}
