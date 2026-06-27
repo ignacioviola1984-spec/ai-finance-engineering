@@ -245,7 +245,7 @@ transaction-level agents and multi-entity consolidation remain on synthetic data
 since no public company discloses transaction-level detail. The exercise is
 illustrative and uses public data only.
 
-Available for **finance-transformation roles and advisory engagements** —
+Available for **finance-transformation roles** —
 see [`OFFERING.md`](OFFERING.md).
 
 ## License
